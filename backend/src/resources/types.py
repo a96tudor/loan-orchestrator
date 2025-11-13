@@ -20,6 +20,11 @@ class PipelineStepEvaluationResult(Enum):
     FAIL = "FAIL"
 
 
+class PipelineStepType(Enum):
+    DTI_RULE = "DTI_RULE"
+    AMOUNT_POLICY_RULE = "AMOUNT_POLICY_RULE"
+    RISK_SCORING_RULE = "RISK_SCORING_RULE"
+
 class Country(Enum):
     pass
 

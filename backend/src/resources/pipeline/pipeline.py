@@ -1,7 +1,8 @@
 import abc
 from typing import Union
 
-from backend.src.resources.types import PipelineStatus, LoanApplicationResult, PipelineStepEvaluationResult
+from backend.src.resources.types import PipelineStatus, LoanApplicationResult, \
+    PipelineStepEvaluationResult, PipelineStepType
 from backend.src.resources.application import Application
 
 
@@ -32,11 +33,13 @@ class Pipeline:
 class PipelineStep(abc.ABC):
     def __init__(
         self,
+        type: PipelineStepType,
         pass_scenario: Union[LoanApplicationResult, "PipelineStep"],
         fail_scenario: Union[LoanApplicationResult, "PipelineStep"],
     ):
         self.pass_scenario = pass_scenario
         self.fail_scenario = fail_scenario
+        self.type = type
 
     @abc.abstractmethod
     def __evaluate(self, application: Application) -> PipelineStepEvaluationResult:
@@ -55,6 +58,18 @@ class PipelineStep(abc.ABC):
         else:
             return next_step
 
-    @abc.abstractmethod
     def to_dict(self) -> dict:
-        raise NotImplementedError("This method should be implemented by subclasses")
+        if isinstance(self.pass_scenario, PipelineStep):
+            pass_scenario_dict = self.pass_scenario.to_dict()
+        else:
+            pass_scenario_dict = self.pass_scenario.value
+        if isinstance(self.fail_scenario, PipelineStep):
+            fail_scenario_dict = self.fail_scenario.to_dict()
+        else:
+            fail_scenario_dict = self.fail_scenario.value
+
+        return {
+            "type": self.type.value,
+            "pass_scenario": pass_scenario_dict,
+            "fail_scenario": fail_scenario_dict,
+        }
