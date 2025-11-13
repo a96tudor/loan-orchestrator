@@ -25,6 +25,12 @@ RUN poetry install --no-dev && rm -rf $POETRY_CACHE_DIR
 # Copy source code
 COPY src/ ./src/
 
+# Copy config generation script
+COPY generate_config.py ./
+
+# Create entrypoint script that generates config.yaml and runs gunicorn
+RUN echo '#!/bin/sh\npoetry run python generate_config.py\nexec poetry run gunicorn --bind 0.0.0.0:5000 --workers 4 backend_app.wsgi:application' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 
@@ -34,6 +40,6 @@ USER appuser
 # Expose port
 EXPOSE 5000
 
-# Run gunicorn with the Flask app factory
-CMD ["poetry", "run", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "backend_app.wsgi:application"]
+# Use entrypoint script
+CMD ["/app/entrypoint.sh"]
 

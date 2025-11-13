@@ -36,12 +36,13 @@ loan-orchestrator/
 ├── .editorconfig
 ├── backend/
 │   ├── pyproject.toml
-│   ├── .env.example
+│   ├── config.yaml.example
 │   └── src/
 │       └── backend_app/
 │           ├── __init__.py
 │           ├── __main__.py
-│           └── app.py
+│           ├── app.py
+│           └── config.py
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.ts
@@ -81,10 +82,10 @@ loan-orchestrator/
    poetry install
    ```
 
-3. Copy the environment example file and configure your database credentials:
+3. Copy the configuration example file and configure your settings:
    ```bash
-   cp .env.example .env
-   # Edit .env with your database credentials
+   cp config.yaml.example config.yaml
+   # Edit config.yaml with your database credentials and other settings
    ```
 
 4. Run the application:

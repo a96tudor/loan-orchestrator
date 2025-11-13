@@ -1,23 +1,35 @@
 """Flask application factory."""
 
+import os
+
 from flask import Flask
 
+from backend_app.app.config import Config
 
-def create_app() -> Flask:
+
+def create_app(config_path: str | None = None) -> Flask:
     """
     Create and configure the Flask application instance.
+
+    Args:
+        config_path: Optional path to the YAML configuration file.
+                    If None, uses CONFIG_PATH environment variable or defaults to config.yaml.
 
     Returns:
         Flask: Configured Flask application instance
     """
     app = Flask(__name__)
 
-    # Configuration can be added here
-    # app.config.from_object(...)
+    # Load configuration from YAML file
+    if config_path is None:
+        config_path = os.getenv("CONFIG_PATH")
+
+    config = Config(config_path)
+    app.config.update(config.to_dict())
 
     return app
 
 
 if __name__ == "__main__" or __name__ == "backend_app.app":
     app = create_app()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=app.config["DEBUG"], host=app.config["HOST"], port=app.config["PORT"])

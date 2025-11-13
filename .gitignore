@@ -56,6 +56,9 @@ frontend/.env.production.local
 .env.local
 .env.*.local
 
+# Configuration files
+backend/config.yaml
+
 # Docker
 *.log
 .dockerignore
