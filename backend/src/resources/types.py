@@ -3,6 +3,13 @@ from enum import Enum
 import pycountry
 
 
+class ApplicationEvaluationStatus(Enum):
+    PENDING = "PENDING"
+    EVALUATING = "EVALUATING"
+    EVALUATED = "EVALUATED"
+    EVALUATING_ERROR = "EVALUATING_ERROR"
+
+
 class LoanApplicationResult(Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
