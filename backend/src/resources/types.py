@@ -25,6 +25,7 @@ class PipelineStepType(Enum):
     AMOUNT_POLICY_RULE = "AMOUNT_POLICY_RULE"
     RISK_SCORING_RULE = "RISK_SCORING_RULE"
 
+
 class Country(Enum):
     pass
 

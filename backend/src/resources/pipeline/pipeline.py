@@ -1,14 +1,22 @@
 import abc
 from typing import Union
 
-from backend.src.resources.types import PipelineStatus, LoanApplicationResult, \
-    PipelineStepEvaluationResult, PipelineStepType
 from backend.src.resources.application import Application
+from backend.src.resources.types import (
+    LoanApplicationResult,
+    PipelineStatus,
+    PipelineStepEvaluationResult,
+    PipelineStepType,
+)
 
 
 class Pipeline:
     def __init__(
-        self, name: str, description: str, version: str, status: PipelineStatus,
+        self,
+        name: str,
+        description: str,
+        version: str,
+        status: PipelineStatus,
         root_step: "PipelineStep",
     ):
         self.name = name

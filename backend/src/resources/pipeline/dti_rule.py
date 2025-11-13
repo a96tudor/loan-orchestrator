@@ -1,7 +1,10 @@
 from backend.src.resources.application import Application
 from backend.src.resources.pipeline.pipeline import PipelineStep
-from backend.src.resources.types import PipelineStepEvaluationResult, PipelineStepType
-from backend.src.resources.types import LoanApplicationResult
+from backend.src.resources.types import (
+    LoanApplicationResult,
+    PipelineStepEvaluationResult,
+    PipelineStepType,
+)
 
 
 class DTIRule(PipelineStep):
