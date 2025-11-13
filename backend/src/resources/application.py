@@ -13,3 +13,7 @@ class Application:
     country: Country
 
     loan_purpose: str
+
+    @property
+    def dti(self) -> float:
+        return self.declared_debts / self.monthly_income
