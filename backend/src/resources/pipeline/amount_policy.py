@@ -15,7 +15,7 @@ class LoanCapForCountry:
     country: Country
     cap_amount: float
 
-    def is_applicable(self, application_country: Country) -> bool:
+    def is_applicable_to(self, application_country: Country) -> bool:
         return self.country == application_country
 
     def to_dict(self):
@@ -32,7 +32,7 @@ class LoanCaps(list):
 
     def get_cap_for_country(self, country: Country) -> float:
         for cap in self:
-            if cap.is_applicable(country):
+            if cap.is_applicable_to(country):
                 return cap.cap_amount
         return self.other
 
