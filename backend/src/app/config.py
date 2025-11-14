@@ -20,8 +20,10 @@ class Config:
         """
         if config_path is None:
             # Default to config.yaml in the app root directory
-            # In local dev: backend/src/app/config.py -> backend/config.yaml (3 levels up)
-            # In Docker: /app/src/app/config.py -> /app/config.yaml (3 levels up)
+            # In local dev:
+            #   backend/src/app/config.py -> backend/config.yaml (3 levels up)
+            # In Docker:
+            #   /app/src/app/config.py -> /app/config.yaml (3 levels up)
             app_root = Path(__file__).parent.parent.parent
             config_path = app_root / "config.yaml"
 
@@ -71,5 +73,5 @@ class Config:
             "HOST": self.HOST,
             "PORT": self.PORT,
             "SQLALCHEMY_DATABASE_URI": self.SQLALCHEMY_DATABASE_URI,
-            "SQLALCHEMY_TRACK_MODIFICATIONS": self.SQLALCHEMY_TRACK_MODIFICATIONS,
+            "SQLALCHEMY_TRACK_MODIFICATIONS": (self.SQLALCHEMY_TRACK_MODIFICATIONS),
         }

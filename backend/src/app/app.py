@@ -12,7 +12,7 @@ def create_app(config_path: str | None = None) -> Flask:
 
     Args:
         config_path: Optional path to the YAML configuration file.
-                    If None, uses CONFIG_PATH environment variable or defaults to config.yaml.
+            If None, uses CONFIG_PATH environment variable or defaults to config.yaml.
 
     Returns:
         Flask: Configured Flask application instance
