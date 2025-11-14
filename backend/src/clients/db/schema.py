@@ -1,24 +1,38 @@
 from sqlalchemy import Column
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, Sequence, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Relationship, declarative_base
 from sqlalchemy.types import INTEGER, JSON, NUMERIC, TEXT, DateTime, String
 
 from backend.src.resources.types import (
     ApplicationEvaluationStatus,
+    ApplicationStatus,
     LoanApplicationResult,
     PipelineStatus,
 )
 
 __BASE = declarative_base()
 
+_APPLICATIONS_COUNTER_SEQ = Sequence("application_counter_seq")
+
 
 class Application(__BASE):
     __tablename__ = "applications"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
+    key = Column(
+        String(100),
+        unique=True,
+        nullable=False,
+        server_default=text("'app-' || nextval('application_counter_seq')::text"),
+    )
     applicant_name = Column(String(255), nullable=False)
+    status = Column(
+        SQLAlchemyEnum(ApplicationStatus),
+        nullable=False,
+        default=ApplicationStatus.SUBMITTED,
+    )
 
     amount = Column(NUMERIC(12, 2), nullable=False)
     monthly_income = Column(NUMERIC(12, 2), nullable=False)

@@ -10,6 +10,13 @@ class ApplicationEvaluationStatus(Enum):
     EVALUATING_ERROR = "EVALUATING_ERROR"
 
 
+class ApplicationStatus(Enum):
+    SUBMITTED = "SUBMITTED"
+    IN_REVIEW = "IN_REVIEW"
+    REVIEWED = "REVIEWED"
+    REVIEWING_ERROR = "REVIEWING_ERROR"
+
+
 class LoanApplicationResult(Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
