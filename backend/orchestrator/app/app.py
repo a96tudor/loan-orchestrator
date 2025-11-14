@@ -32,13 +32,6 @@ class OrchestratorApp(Flask):
         )
 
     def load_config(self, config_path: str | None = None) -> None:
-        """
-        Load configuration from a YAML file.
-
-        Args:
-            config_path: Optional path to the YAML configuration file.
-                If None, uses CONFIG_PATH environment variable or defaults to config.yaml.
-        """
         if config_path is None:
             config_path = os.getenv("CONFIG_PATH")
 
@@ -47,16 +40,6 @@ class OrchestratorApp(Flask):
 
 
 def create_app(config_path: str | None = None) -> Flask:
-    """
-    Create and configure the Flask application instance.
-
-    Args:
-        config_path: Optional path to the YAML configuration file.
-            If None, uses CONFIG_PATH environment variable or defaults to config.yaml.
-
-    Returns:
-        Flask: Configured Flask application instance
-    """
     app = OrchestratorApp(__name__)
     app.load_config(config_path)
 
