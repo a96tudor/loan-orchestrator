@@ -23,6 +23,7 @@ wheels/
 .installed.cfg
 *.egg
 **/.tox/
+**/alembic.ini
 
 # Node.js
 node_modules/

@@ -12,12 +12,12 @@ from orchestrator.resources.types import (
     PipelineStatus,
 )
 
-__BASE = declarative_base()
+_BASE = declarative_base()
 
 _APPLICATIONS_COUNTER_SEQ = Sequence("application_counter_seq")
 
 
-class Application(__BASE):
+class Application(_BASE):
     __tablename__ = "applications"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
@@ -53,7 +53,7 @@ class Application(__BASE):
     )
 
 
-class Pipeline(__BASE):
+class Pipeline(_BASE):
     __tablename__ = "pipelines"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
@@ -86,7 +86,7 @@ class Pipeline(__BASE):
     current_version = Relationship("PipelineVersion", foreign_keys=[current_version_id])
 
 
-class PipelineVersion(__BASE):
+class PipelineVersion(_BASE):
     __tablename__ = "pipeline_versions"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
@@ -113,7 +113,7 @@ class PipelineVersion(__BASE):
     )
 
 
-class ApplicationEvaluation(__BASE):
+class ApplicationEvaluation(_BASE):
     __tablename__ = "application_evaluations"
 
     id = Column(UUID(as_uuid=True), primary_key=True)

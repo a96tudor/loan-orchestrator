@@ -12,6 +12,7 @@ gunicorn = "^23.0.0"
 pyutils = {git = "https://github.com/a96tudor/pyutils.git", rev = "main"}
 pycountry = "^24.6.1"
 pyyaml = "^6.0.1"
+alembic = "^1.17.2"
 
 [tool.poetry.group.dev.dependencies]
 tox = "^4.32.0"
