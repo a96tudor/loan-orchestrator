@@ -1,4 +1,5 @@
 import abc
+from time import time
 from typing import Optional, Union
 
 from backend.src.resources.application import Application
@@ -25,12 +26,16 @@ class Pipeline:
         self.status = status
         self.root_step = root_step
 
-        self.eval_result: Optional[LoanApplicationResult] = None
+        self.run_result: Optional[LoanApplicationResult] = None
+        self.run_time: float = 0.0
 
     def run_on_application(self, application: Application) -> LoanApplicationResult:
-        self.eval_result = self.root_step.execute(application)
+        start_time = time()
+        self.run_result = self.root_step.execute(application)
+        end_time = time()
+        self.run_time = end_time - start_time
 
-        return self.eval_result
+        return self.run_result
 
     def to_dict(self) -> dict:
         return {
@@ -38,12 +43,12 @@ class Pipeline:
             "description": self.description,
             "version": self.version,
             "status": self.status.value,
-            "root_step": self.root_step.to_dict(),
+            "steps": self.root_step.to_dict(),
         }
 
     @property
     def run_log(self) -> Optional[dict]:
-        if self.eval_result is None:
+        if self.run_result is None:
             return None
 
         return {
@@ -54,7 +59,8 @@ class Pipeline:
             },
             "steps": self.root_step.to_dict(),
             "eval": self.root_step.get_evaluation_result(),
-            "final_result": self.eval_result,
+            "run_result": self.run_result,
+            "run_duration": self.run_time,
         }
 
 
@@ -72,13 +78,22 @@ class PipelineStep(abc.ABC):
         self.evaluated: bool = False
         self.evaluation_result: Optional[LoanApplicationResult] = None
         self.evaluation_result_value: Optional[float] = None
+        self.evaluation_duration: float = 0.0
 
     @abc.abstractmethod
     def __evaluate(self, application: Application) -> PipelineStepEvaluationResult:
         raise NotImplementedError("This method should be implemented by subclasses")
 
+    def __timed_evaluation(self, application: Application) -> LoanApplicationResult:
+        start_time = time()
+        result = self.__evaluate(application)
+        end_time = time()
+        self.evaluation_duration = end_time - start_time
+        self.evaluated = True
+        return result
+
     def execute(self, application: Application) -> LoanApplicationResult:
-        eval_result = self.__evaluate(application)
+        eval_result = self.__timed_evaluation(application)
 
         self.evaluation_result = eval_result
         self.evaluated = True
@@ -126,6 +141,7 @@ class PipelineStep(abc.ABC):
         return {
             "evaluation_result": self.evaluation_result.value,
             "evaluation_result_value": self.evaluation_result_value,
+            "evaluation_duration": self.evaluation_duration,
             "pass_scenario_evaluation": pass_eval_result,
             "fail_scenario_evaluation": fail_eval_result,
         }
