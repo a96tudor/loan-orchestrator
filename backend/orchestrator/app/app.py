@@ -2,8 +2,10 @@
 
 import os
 
-from backend_app.app.config import Config
 from flask import Flask
+
+from orchestrator.app.config import Config
+from orchestrator.app.routes import register_routes
 
 
 def create_app(config_path: str | None = None) -> Flask:
@@ -26,9 +28,10 @@ def create_app(config_path: str | None = None) -> Flask:
     config = Config(config_path)
     app.config.update(config.to_dict())
 
+    # Register routes
+    register_routes(app)
+
     return app
 
 
-if __name__ == "__main__" or __name__ == "backend_app.app":
-    app = create_app()
-    app.run(debug=app.config["DEBUG"], host=app.config["HOST"], port=app.config["PORT"])
+APP = create_app()
