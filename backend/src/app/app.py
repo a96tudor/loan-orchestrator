@@ -2,9 +2,8 @@
 
 import os
 
-from flask import Flask
-
 from backend_app.app.config import Config
+from flask import Flask
 
 
 def create_app(config_path: str | None = None) -> Flask:
