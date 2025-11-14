@@ -52,6 +52,7 @@ class Config:
         self.DEBUG = flask_config.get("debug", False)
         self.HOST = flask_config.get("host", "0.0.0.0")
         self.PORT = flask_config.get("port", 5000)
+        self.VERSION = flask_config.get("version", "v1")
 
         # SQLAlchemy database URI
         self.SQLALCHEMY_DATABASE_URI = (
@@ -74,4 +75,5 @@ class Config:
             "PORT": self.PORT,
             "SQLALCHEMY_DATABASE_URI": self.SQLALCHEMY_DATABASE_URI,
             "SQLALCHEMY_TRACK_MODIFICATIONS": (self.SQLALCHEMY_TRACK_MODIFICATIONS),
+            "VERSION": self.VERSION,
         }
