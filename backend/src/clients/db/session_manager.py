@@ -2,16 +2,17 @@ import threading
 from typing import Dict, Optional
 
 from flask import g, has_app_context
+from pyutils.config.providers import YAMLConfigProvider
 from pyutils.database.sqlalchemy.db_factory import SessionManager
-from tonight.utils.config_provider import InfisicalConfigProvider
-from tonight.utils.logger import logger
+
+from backend.src.utils.logging import logger
 
 # Global session manager pool - keyed by thread ID for persistence across requests
 _SESSION_MANAGER_POOL: Dict[int, SessionManager] = {}
 _POOL_LOCK = threading.Lock()
 
 __CONFIG_SECRET_ROUTE = ["tonight", "db", "secrets"]
-__CONFIG_PROVIDER = InfisicalConfigProvider()
+__CONFIG_PROVIDER = YAMLConfigProvider("config/settings.yaml")
 
 with __CONFIG_PROVIDER.provide(__CONFIG_SECRET_ROUTE).unlock() as config:
     __DB_NAME = config.secret.get("database", "tonight")
