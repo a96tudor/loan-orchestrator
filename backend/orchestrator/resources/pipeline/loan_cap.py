@@ -1,6 +1,6 @@
 import dataclasses
 
-from backend.src.resources.types import Country
+from orchestrator.resources.types import Country
 
 
 @dataclasses.dataclass

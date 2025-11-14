@@ -9,9 +9,9 @@ from pyutils.helpers.errors import BadArgumentsError
 from sqlalchemy import Column
 from sqlalchemy.orm import DeclarativeBase
 
-from backend.src.clients.db.session_manager import get_session_manager
-from backend.src.utils.config import CONFIG_PROVIDER
-from backend.src.utils.logging import logger
+from orchestrator.clients.db.session_manager import get_session_manager
+from orchestrator.utils.config import CONFIG_PROVIDER
+from orchestrator.utils.logging import logger
 
 
 class BaseDBWrapper(DBWrapperPyUtils):

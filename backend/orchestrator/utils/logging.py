@@ -10,7 +10,7 @@ from pyutils.logging import Logger, get_logger
 from pyutils.logging.formatters import JSONLogFormatter
 from pyutils.logging.handlers import CommandLineHandler
 
-from backend.src.utils.formatting import current_utc, format_rfc3339
+from orchestrator.utils.formatting import current_utc, format_rfc3339
 
 
 @dataclass

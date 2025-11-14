@@ -3,9 +3,7 @@ name = "backend-app"
 version = "0.1.0"
 description = "Loan Orchestrator Backend Application"
 authors = ["Tudor Avram <a96tudor@gmail.com>"]
-readme = "README.md"
-package-mode = false
-packages = [{include = "backend_app", from = "src"}, ]
+packages = [ {include = "orchestrator"} ]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"

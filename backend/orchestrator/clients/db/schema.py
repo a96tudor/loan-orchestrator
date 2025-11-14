@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Relationship, declarative_base
 from sqlalchemy.types import INTEGER, JSON, NUMERIC, TEXT, DateTime, String
 
-from backend.src.resources.types import (
+from orchestrator.resources.types import (
     ApplicationEvaluationStatus,
     ApplicationStatus,
     LoanApplicationResult,

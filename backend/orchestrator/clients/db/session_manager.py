@@ -5,7 +5,7 @@ from flask import g, has_app_context
 from pyutils.config.providers import YAMLConfigProvider
 from pyutils.database.sqlalchemy.db_factory import SessionManager
 
-from backend.src.utils.logging import logger
+from orchestrator.utils.logging import logger
 
 # Global session manager pool - keyed by thread ID for persistence across requests
 _SESSION_MANAGER_POOL: Dict[int, SessionManager] = {}

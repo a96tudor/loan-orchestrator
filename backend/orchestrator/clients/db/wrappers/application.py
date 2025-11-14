@@ -3,10 +3,10 @@ from uuid import uuid4
 
 from pyutils.database.sqlalchemy.filters import EqualityFilter, InListFilter
 
-from backend.src.clients.db.schema import Application
-from backend.src.clients.db.wrappers.base import BaseDBWrapper
-from backend.src.resources.types import ApplicationStatus, Country
-from backend.src.utils.logging import log_execution_time
+from orchestrator.clients.db.schema import Application
+from orchestrator.clients.db.wrappers.base import BaseDBWrapper
+from orchestrator.resources.types import ApplicationStatus, Country
+from orchestrator.utils.logging import log_execution_time
 
 
 class ApplicationsDBWrapper(BaseDBWrapper):

@@ -1,6 +1,6 @@
-from backend.src.resources.application import Application
-from backend.src.resources.pipeline.pipeline import PipelineStep
-from backend.src.resources.types import (
+from orchestrator.resources.application import Application
+from orchestrator.resources.pipeline.pipeline import PipelineStep
+from orchestrator.resources.types import (
     LoanApplicationResult,
     PipelineStepEvaluationResult,
     PipelineStepType,

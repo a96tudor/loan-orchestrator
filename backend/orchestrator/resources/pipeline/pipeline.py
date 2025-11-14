@@ -2,8 +2,8 @@ import abc
 from time import time
 from typing import Optional, Union
 
-from backend.src.resources.application import Application
-from backend.src.resources.types import (
+from orchestrator.resources.application import Application
+from orchestrator.resources.types import (
     LoanApplicationResult,
     PipelineStatus,
     PipelineStepEvaluationResult,
