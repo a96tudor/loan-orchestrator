@@ -5,8 +5,8 @@ from pyutils.helpers.errors import Error
 from orchestrator.resources.pipeline.amount_policy import AmountPoliciesRule
 from orchestrator.resources.pipeline.dti_rule import DTIRule
 from orchestrator.resources.pipeline.loan_cap import LoanCapForCountry, LoanCaps
-from orchestrator.resources.pipeline.pipeline import PipelineStep
 from orchestrator.resources.pipeline.risk_scoring import RiskScoringRule
+from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
     Country,
     PipelineStepEvaluationResult,

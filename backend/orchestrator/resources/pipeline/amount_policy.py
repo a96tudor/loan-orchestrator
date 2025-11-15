@@ -1,6 +1,6 @@
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.loan_cap import LoanCaps
-from orchestrator.resources.pipeline.pipeline import PipelineStep
+from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
     LoanApplicationResult,
     PipelineStepEvaluationResult,
