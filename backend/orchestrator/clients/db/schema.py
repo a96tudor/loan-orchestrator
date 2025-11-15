@@ -127,11 +127,6 @@ class ApplicationEvaluation(_BASE):
         ForeignKey("pipelines.id"),
         nullable=False,
     )
-    pipeline_version_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("pipeline_versions.id"),
-        nullable=False,
-    )
     status = Column(
         SQLAlchemyEnum(ApplicationEvaluationStatus),
         nullable=False,
@@ -155,6 +150,3 @@ class ApplicationEvaluation(_BASE):
     # Relationships
     application = Relationship("Application", foreign_keys=[application_id])
     pipeline = Relationship("Pipeline", foreign_keys=[pipeline_id])
-    pipeline_version = Relationship(
-        "PipelineVersion", foreign_keys=[pipeline_version_id]
-    )

@@ -5,6 +5,7 @@ Revises:
 Create Date: 2025-11-15 00:37:19.579470
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -12,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8630432205e8'
+revision: str = "8630432205e8"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,56 +25,152 @@ def upgrade() -> None:
     # 1) Create the sequence FIRST
     op.execute("CREATE SEQUENCE application_counter_seq START 1 INCREMENT 1;")
 
-    op.create_table('applications',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('key', sa.String(length=100), server_default=sa.text("'app-' || nextval('application_counter_seq')::text"), nullable=False),
-    sa.Column('applicant_name', sa.String(length=255), nullable=False),
-    sa.Column('status', sa.Enum('SUBMITTED', 'IN_REVIEW', 'REVIEWED', 'REVIEWING_ERROR', name='applicationstatus'), nullable=False),
-    sa.Column('amount', sa.NUMERIC(precision=12, scale=2), nullable=False),
-    sa.Column('monthly_income', sa.NUMERIC(precision=12, scale=2), nullable=False),
-    sa.Column('declared_debts', sa.NUMERIC(precision=12, scale=2), nullable=False),
-    sa.Column('country', sa.String(length=100), nullable=False),
-    sa.Column('loan_purpose', sa.TEXT(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('key')
+    op.create_table(
+        "applications",
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column(
+            "key",
+            sa.String(length=100),
+            server_default=sa.text(
+                "'app-' || nextval('application_counter_seq')::text"
+            ),
+            nullable=False,
+        ),
+        sa.Column("applicant_name", sa.String(length=255), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "SUBMITTED",
+                "IN_REVIEW",
+                "REVIEWED",
+                "REVIEWING_ERROR",
+                name="applicationstatus",
+            ),
+            nullable=False,
+        ),
+        sa.Column("amount", sa.NUMERIC(precision=12, scale=2), nullable=False),
+        sa.Column("monthly_income", sa.NUMERIC(precision=12, scale=2), nullable=False),
+        sa.Column("declared_debts", sa.NUMERIC(precision=12, scale=2), nullable=False),
+        sa.Column("country", sa.String(length=100), nullable=False),
+        sa.Column("loan_purpose", sa.TEXT(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("key"),
     )
-    op.create_table('pipeline_versions',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('version_number', sa.INTEGER(), nullable=False),
-    sa.Column('steps', sa.JSON(), nullable=False),
-    sa.Column('previous_version_id', sa.UUID(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['previous_version_id'], ['pipeline_versions.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    op.create_table(
+        "pipeline_versions",
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("version_number", sa.INTEGER(), nullable=False),
+        sa.Column("steps", sa.JSON(), nullable=False),
+        sa.Column("previous_version_id", sa.UUID(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["previous_version_id"],
+            ["pipeline_versions.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
     )
-    op.create_table('pipelines',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('description', sa.TEXT(), nullable=True),
-    sa.Column('status', sa.Enum('ACTIVE', 'DISABLED', 'OLD_VERSION', name='pipelinestatus'), nullable=False),
-    sa.Column('current_version_id', sa.UUID(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['current_version_id'], ['pipeline_versions.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    op.create_table(
+        "pipelines",
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("description", sa.TEXT(), nullable=True),
+        sa.Column(
+            "status",
+            sa.Enum("ACTIVE", "DISABLED", "OLD_VERSION", name="pipelinestatus"),
+            nullable=False,
+        ),
+        sa.Column("current_version_id", sa.UUID(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["current_version_id"],
+            ["pipeline_versions.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
     )
-    op.create_table('application_evaluations',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('application_id', sa.UUID(), nullable=False),
-    sa.Column('pipeline_id', sa.UUID(), nullable=False),
-    sa.Column('pipeline_version_id', sa.UUID(), nullable=False),
-    sa.Column('status', sa.Enum('PENDING', 'EVALUATING', 'EVALUATED', 'EVALUATING_ERROR', name='applicationevaluationstatus'), nullable=False),
-    sa.Column('result', sa.Enum('APPROVED', 'REJECTED', 'NEEDS_REVIEW', name='loanapplicationresult'), nullable=True),
-    sa.Column('details', sa.JSON(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['application_id'], ['applications.id'], ),
-    sa.ForeignKeyConstraint(['pipeline_id'], ['pipelines.id'], ),
-    sa.ForeignKeyConstraint(['pipeline_version_id'], ['pipeline_versions.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    op.create_table(
+        "application_evaluations",
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("application_id", sa.UUID(), nullable=False),
+        sa.Column("pipeline_id", sa.UUID(), nullable=False),
+        sa.Column("pipeline_version_id", sa.UUID(), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "PENDING",
+                "EVALUATING",
+                "EVALUATED",
+                "EVALUATING_ERROR",
+                name="applicationevaluationstatus",
+            ),
+            nullable=False,
+        ),
+        sa.Column(
+            "result",
+            sa.Enum(
+                "APPROVED", "REJECTED", "NEEDS_REVIEW", name="loanapplicationresult"
+            ),
+            nullable=True,
+        ),
+        sa.Column("details", sa.JSON(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["application_id"],
+            ["applications.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["pipeline_id"],
+            ["pipelines.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["pipeline_version_id"],
+            ["pipeline_versions.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###
 
@@ -81,8 +178,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('application_evaluations')
-    op.drop_table('pipelines')
-    op.drop_table('pipeline_versions')
-    op.drop_table('applications')
+    op.drop_table("application_evaluations")
+    op.drop_table("pipelines")
+    op.drop_table("pipeline_versions")
+    op.drop_table("applications")
     # ### end Alembic commands ###
