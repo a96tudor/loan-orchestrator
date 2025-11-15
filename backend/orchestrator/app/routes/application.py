@@ -27,8 +27,8 @@ def create_application() -> Response:
             status=400,
             mimetype="application/json",
         )
-    except Exception:
-        logger.error("Error creating application", exc_info=True)
+    except Exception as e:
+        logger.error(f"Error creating application: {e}", exc_info=True)
         return Response(
             response='{"error": "Internal server error"}',
             status=500,
@@ -43,7 +43,7 @@ def create_application() -> Response:
         "declaredDebts": application.declared_debts,
         "country": application.country,
         "loanPurpose": application.loan_purpose,
-        "status": application.status,
+        "status": application.status.value,
     }
 
     return jsonify(response_body)

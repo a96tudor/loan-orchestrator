@@ -11,8 +11,8 @@ from orchestrator.utils.logging import logger
 _SESSION_MANAGER_POOL: Dict[int, SessionManager] = {}
 _POOL_LOCK = threading.Lock()
 
-__CONFIG_SECRET_ROUTE = ["db", "secrets"]
-__CONFIG_PROVIDER = YAMLConfigProvider("config/settings.yaml")
+__CONFIG_SECRET_ROUTE = ["database"]
+__CONFIG_PROVIDER = YAMLConfigProvider("config.yaml")
 
 with __CONFIG_PROVIDER.provide(__CONFIG_SECRET_ROUTE).unlock() as config:
     __DB_NAME = config.secret.get("database", "loan-orchestrator")

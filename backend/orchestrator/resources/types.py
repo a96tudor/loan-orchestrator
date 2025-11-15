@@ -40,9 +40,7 @@ class PipelineStepType(Enum):
     RISK_SCORING_RULE = "RISK_SCORING_RULE"
 
 
-class Country(Enum):
-    pass
-
-
-for country in pycountry.countries:
-    setattr(Country, country.name, country.name)
+Country = Enum(
+    "Country",
+    {country.name: country.name for country in pycountry.countries},
+)
