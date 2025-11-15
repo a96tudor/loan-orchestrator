@@ -6,6 +6,7 @@ from .application import (
     get_loan_applications,
 )
 from .health import health_check
+from .pipeline import create_pipeline
 
 
 def register_routes(app: Flask) -> None:
@@ -20,3 +21,6 @@ def register_routes(app: Flask) -> None:
         view_func=get_application_by_key,
         methods=["GET"],
     )
+
+    # Pipeline routes
+    app.add_url_rule("/pipeline", view_func=create_pipeline, methods=["POST"])

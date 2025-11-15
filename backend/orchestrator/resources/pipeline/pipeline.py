@@ -1,9 +1,11 @@
 from time import time
 from typing import Optional
 
+from orchestrator.clients.db.schema import Pipeline as PipelineDAO
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import LoanApplicationResult, PipelineStatus
+from orchestrator.utils.parsing import parse_pipeline_step
 
 
 class Pipeline:
@@ -57,3 +59,14 @@ class Pipeline:
             "run_result": self.run_result,
             "run_duration": self.run_time,
         }
+
+    @classmethod
+    def from_dao(cls, dao: PipelineDAO) -> "Pipeline":
+        root_step = parse_pipeline_step(dao.current_version.steps)
+        return cls(
+            name=dao.name,
+            description=dao.description,
+            version=str(dao.current_version.version),
+            status=PipelineStatus(dao.status),
+            root_step=root_step,
+        )
