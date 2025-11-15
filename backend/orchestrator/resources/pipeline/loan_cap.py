@@ -31,6 +31,6 @@ class LoanCaps(list):
 
     def to_dicts(self) -> list[dict]:
         result = [cap.to_dict() for cap in self]
-        result.append({"country": "OTHER", "cap_amount": self.other})
+        result.append({"country": "OTHER", "capAmount": self.other})
 
         return result

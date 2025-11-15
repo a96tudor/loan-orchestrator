@@ -6,6 +6,7 @@ from pyutils.database.sqlalchemy.filters import InListFilter
 from orchestrator.clients.db.schema import Pipeline, PipelineVersion
 from orchestrator.clients.db.wrappers.base import BaseDBWrapper
 from orchestrator.utils.logging import log_execution_time
+from orchestrator.resources.types import PipelineStatus
 
 
 class PipelinesDBWrapper(BaseDBWrapper):
@@ -16,6 +17,20 @@ class PipelinesDBWrapper(BaseDBWrapper):
     def get_pipeline_by_id(self, pipeline_id: str) -> Optional[Pipeline]:
         return self._get_model_by_id(pipeline_id)
 
+    def _create_pipeline_version(
+        self, version_number: int,
+        steps: dict,
+        previous_version_id: Optional[str] = None,
+    ) -> PipelineVersion:
+        pipeline_version_id = str(uuid4())
+        pipeline_version = self._create_and_upsert_model(
+            model_class=PipelineVersion,
+            id=pipeline_version_id,
+            version_number=version_number,
+            steps=steps,
+        )
+        return pipeline_version
+
     @log_execution_time("Creating a new pipeline")
     def create_pipeline(
         self,
@@ -24,10 +39,7 @@ class PipelinesDBWrapper(BaseDBWrapper):
         steps: dict,
     ) -> Pipeline:
         # Creating the version first
-        pipeline_version_id = str(uuid4())
-        pipeline_version = self._create_and_upsert_model(
-            model_class=PipelineVersion,
-            id=pipeline_version_id,
+        pipeline_version = self._create_pipeline_version(
             version_number=1,
             steps=steps,
         )
@@ -38,7 +50,7 @@ class PipelinesDBWrapper(BaseDBWrapper):
             id=pipeline_id,
             name=name,
             description=description,
-            current_version_id=pipeline_version_id,
+            current_version_id=pipeline_version.id,
         )
 
         return new_pipeline
@@ -63,3 +75,57 @@ class PipelinesDBWrapper(BaseDBWrapper):
             filters=filters,
             return_type=self.GetResultType.ALL,
         )
+
+    def __should_update(self, pipeline: Pipeline, **kwargs) -> bool:
+        if all(value is None for value in kwargs.values()):
+            return False
+
+        if pipeline.current_version.steps == kwargs.get("steps"):
+            return False
+        if pipeline.name == kwargs.get("name"):
+            return False
+        if pipeline.description == kwargs.get("description"):
+            return False
+        if pipeline.status == kwargs.get("status"):
+            return False
+
+        return True
+
+
+    def update_pipeline(
+        self,
+        pipeline: Pipeline,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        steps: Optional[dict] = None,
+        status: Optional[PipelineStatus] = None,
+    ) -> Pipeline:
+        should_update = self.__should_update(
+            pipeline,
+            name=name,
+            description=description,
+            steps=steps,
+            status=status,
+        )
+        if not should_update:
+            return pipeline
+
+        if steps is not None:
+            # We need to create a new version
+            version = pipeline.current_version.version_number + 1
+            new_version = self._create_pipeline_version(
+                version_number=version,
+                steps=steps,
+                previous_version_id=pipeline.current_version.id,
+            )
+            pipeline.current_version_id = new_version.id
+            pipeline.current_version = new_version
+
+        if name is not None:
+            pipeline.name = name
+        if description is not None:
+            pipeline.description = description
+        if status is not None:
+            pipeline.status = status
+
+        return self._upsert_model(pipeline)
