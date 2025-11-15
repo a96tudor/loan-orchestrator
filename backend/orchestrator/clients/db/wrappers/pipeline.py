@@ -1,6 +1,8 @@
 from typing import Optional
 from uuid import uuid4
 
+from pyutils.database.sqlalchemy.filters import InListFilter
+
 from orchestrator.clients.db.schema import Pipeline, PipelineVersion
 from orchestrator.clients.db.wrappers.base import BaseDBWrapper
 from orchestrator.utils.logging import log_execution_time
@@ -40,3 +42,24 @@ class PipelinesDBWrapper(BaseDBWrapper):
         )
 
         return new_pipeline
+
+    def get_pipelines_by_status(
+        self,
+        status_in: Optional[list[str]] = None,
+        status_not_in: Optional[list[str]] = None,
+    ) -> list[Pipeline]:
+        filters = []
+
+        if status_in:
+            filters.append(InListFilter(self.model_class.status, status_in))
+
+        if status_not_in:
+            filters.append(
+                InListFilter(self.model_class.status, status_not_in, negated=True)
+            )
+
+        return self._get_with_filters(
+            model_class=self.model_class,
+            filters=filters,
+            return_type=self.GetResultType.ALL,
+        )

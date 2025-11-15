@@ -58,3 +58,29 @@ def get_pipeline_by_id(pipeline_id: str) -> Response:
     pipeline_dto = Pipeline.from_dao(pipeline_dao)
 
     return jsonify(pipeline_dto.to_dict())
+
+
+@run_route_safely(message="Error fetching pipelines", unwrap_body=False)
+@log_execution_time(description="Fetching pipelines by parameters")
+def get_pipelines() -> Response:
+    status_in = request.args.getlist("statusIn")
+    status_not_in = request.args.getlist("statusNotIn")
+
+    db_wrapper = PipelinesDBWrapper()
+
+    pipeline_daos = db_wrapper.get_pipelines_by_status(
+        status_in=(
+            [status for status in map(lambda s: s.upper(), status_in)]
+            if status_in
+            else None
+        ),
+        status_not_in=(
+            [status for status in map(lambda s: s.upper(), status_not_in)]
+            if status_not_in
+            else None
+        ),
+    )
+
+    pipelines = [Pipeline.from_dao(pipeline_dao) for pipeline_dao in pipeline_daos]
+
+    return jsonify([pipeline.to_dict() for pipeline in pipelines])
