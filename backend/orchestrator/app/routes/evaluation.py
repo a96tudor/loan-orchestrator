@@ -5,7 +5,11 @@ from orchestrator.app.routes.pipeline import get_pipeline_dao_by_id
 from orchestrator.clients.db.wrappers.application import ApplicationsDBWrapper
 from orchestrator.clients.db.wrappers.evaluation import EvaluationsDBWrapper
 from orchestrator.resources.evaluation import Evaluation as EvaluationDTO
-from orchestrator.resources.types import ApplicationStatus
+from orchestrator.resources.types import (
+    ApplicationEvaluationStatus,
+    ApplicationStatus,
+    EvaluationResult,
+)
 from orchestrator.utils.logging import log_execution_time, logger
 from orchestrator.utils.wrappers import run_route_safely
 
@@ -116,3 +120,32 @@ def get_evaluations_by_params() -> Response:
     evaluations_dict = [evaluation_dto.to_dict() for evaluation_dto in evaluations_dto]
 
     return jsonify(evaluations_dict)
+
+
+@run_route_safely(message="Error retrieving evaluation statistics", unwrap_body=False)
+@log_execution_time(description="Retrieving evaluation statistics")
+def get_evaluation_stats() -> Response:
+    db_wrapper = EvaluationsDBWrapper()
+    evaluations = db_wrapper.get_evaluations_by_values()
+
+    count_by_status = {
+        status.value: len([e for e in evaluations if e.status == status])
+        for status in ApplicationEvaluationStatus
+    }
+
+    count_by_result = {
+        result.value: len([e for e in evaluations if e.result == result])
+        for result in EvaluationResult
+    }
+
+    all_durations = [e.details["run_duration"] for e in evaluations if e.details]
+
+    average_duration = sum(all_durations) / len(all_durations) if all_durations else 0.0
+
+    return jsonify(
+        {
+            "byStatus": count_by_status,
+            "byResult": count_by_result,
+            "averageDuration": average_duration,
+        }
+    )

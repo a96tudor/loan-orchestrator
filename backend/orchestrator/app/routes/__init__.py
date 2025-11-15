@@ -9,6 +9,7 @@ from .evaluation import (
     evaluate_application,
     get_evaluation_by_id,
     get_evaluations_by_params,
+    get_evaluation_stats,
 )
 from .health import health_check
 from .pipeline import (
@@ -54,5 +55,10 @@ def register_routes(app: Flask) -> None:
     app.add_url_rule(
         "/evaluations",
         view_func=get_evaluations_by_params,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        "/evaluations/stats",
+        view_func=get_evaluation_stats,
         methods=["GET"],
     )
