@@ -8,8 +8,8 @@ from .application import (
 from .evaluation import (
     evaluate_application,
     get_evaluation_by_id,
-    get_evaluations_by_params,
     get_evaluation_stats,
+    get_evaluations_by_params,
 )
 from .health import health_check
 from .pipeline import (

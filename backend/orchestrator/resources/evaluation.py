@@ -47,3 +47,14 @@ class Evaluation:
             "result": self.result.value if self.result else None,
             "details": self.details,
         }
+
+    def run(self):
+        self.pipeline.run_on_application(self.application)
+
+    @property
+    def result(self):
+        return self.pipeline.run_result
+
+    @property
+    def details(self):
+        return self.pipeline.run_log

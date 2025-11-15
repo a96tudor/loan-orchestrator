@@ -10,6 +10,7 @@ from orchestrator.resources.types import (
     ApplicationStatus,
     EvaluationResult,
 )
+from orchestrator.utils.async_evaluator import async_evaluator
 from orchestrator.utils.logging import log_execution_time, logger
 from orchestrator.utils.wrappers import run_route_safely
 
@@ -50,6 +51,7 @@ def evaluate_application() -> Response:
             pipeline_id=pipeline_dao.id,
         )
         evaluation_dto = EvaluationDTO.from_dao(evaluation_dao)
+        async_evaluator.add_to_queue(evaluation_dto)
     except Exception as err:
         logger.error(
             f"Failed to create evaluation for application {application_dao.id} "

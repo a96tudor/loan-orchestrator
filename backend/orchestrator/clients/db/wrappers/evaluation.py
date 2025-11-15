@@ -6,7 +6,7 @@ from pyutils.database.sqlalchemy.joins import Join
 
 from orchestrator.clients.db.schema import Application, ApplicationEvaluation
 from orchestrator.clients.db.wrappers.base import BaseDBWrapper
-from orchestrator.resources.types import ApplicationEvaluationStatus
+from orchestrator.resources.types import ApplicationEvaluationStatus, EvaluationResult
 from orchestrator.utils.logging import log_execution_time
 
 
@@ -86,3 +86,20 @@ class EvaluationsDBWrapper(BaseDBWrapper):
             limit=limit,
             return_type=self.GetResultType.ALL,
         )
+
+    @log_execution_time("Updating application evaluation")
+    def update_evaluation(
+        self,
+        evaluation: ApplicationEvaluation,
+        status: Optional[ApplicationEvaluationStatus] = None,
+        result: Optional[EvaluationResult] = None,
+        details: Optional[dict] = None,
+    ) -> None:
+        if status is not None:
+            evaluation.status = status
+        if result is not None:
+            evaluation.result = result
+        if details is not None:
+            evaluation.details = details
+
+        self._upsert_model(evaluation)
