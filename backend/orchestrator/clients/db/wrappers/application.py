@@ -38,7 +38,7 @@ class ApplicationsDBWrapper(BaseDBWrapper):
     @log_execution_time(description="Fetching Applications by value from the database")
     def get_applications_by_value(
         self,
-        key: Optional[str],
+        key: Optional[str] = None,
         status_in: Optional[List[ApplicationStatus]] = None,
         status_not_in: Optional[List[ApplicationStatus]] = None,
     ):
