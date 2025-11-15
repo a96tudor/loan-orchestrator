@@ -56,3 +56,13 @@ class ApplicationsDBWrapper(BaseDBWrapper):
             filters=filters,
             return_type=self.GetResultType.ALL,
         )
+
+    @log_execution_time("Updating Application status in the database")
+    def update_application_status(
+        self,
+        application: Application,
+        new_status: ApplicationStatus,
+    ) -> Application:
+        application.status = new_status
+
+        return self._upsert_model(application)

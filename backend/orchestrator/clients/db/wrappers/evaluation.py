@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from orchestrator.clients.db.schema import ApplicationEvaluation
 from orchestrator.clients.db.wrappers.base import BaseDBWrapper
 from orchestrator.resources.types import ApplicationEvaluationStatus
@@ -13,13 +15,18 @@ class EvaluationsDBWrapper(BaseDBWrapper):
         self,
         application_id: str,
         pipeline_id: str,
-        pipeline_version_id: str,
     ) -> ApplicationEvaluation:
         """Create a new application evaluation entry."""
         new_evaluation = self._create_and_upsert(
+            id=str(uuid4()),
             application_id=application_id,
             pipeline_id=pipeline_id,
-            pipeline_version_id=pipeline_version_id,
             status=ApplicationEvaluationStatus.PENDING,
         )
+
         return new_evaluation
+
+    @log_execution_time("Deleting an application evaluation")
+    def delete_evaluation(self, evaluation: ApplicationEvaluation) -> None:
+        """Delete an application evaluation entry."""
+        self._delete_model(evaluation)

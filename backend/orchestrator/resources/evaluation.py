@@ -28,7 +28,7 @@ class Evaluation:
     @classmethod
     def from_dao(cls, dao: ApplicationEvaluationDAO) -> "Evaluation":
         application = Application.from_dao(dao.application)
-        pipeline = Pipeline.from_dao(dao.pipeline_version)
+        pipeline = Pipeline.from_dao(dao.pipeline)
         return cls(
             id_=dao.id,
             application=application,
