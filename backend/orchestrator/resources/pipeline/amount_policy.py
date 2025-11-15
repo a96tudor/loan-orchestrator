@@ -30,6 +30,6 @@ class AmountPoliciesRule(PipelineStep):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result.update({"loan_caps": self.loan_caps.to_dicts()})
+        result.update({"loanCaps": self.loan_caps.to_dicts()})
 
         return result

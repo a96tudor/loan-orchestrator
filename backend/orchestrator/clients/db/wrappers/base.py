@@ -41,7 +41,7 @@ class BaseDBWrapper(DBWrapperPyUtils):
 
         return model
 
-    def _get_model_by_id(self, model_id: int) -> Optional[DeclarativeBase]:
+    def _get_model_by_id(self, model_id: str) -> Optional[DeclarativeBase]:
         if not model_id:
             raise BadArgumentsError("Model ID must be provided.")
 

@@ -120,8 +120,8 @@ class PipelineStep(abc.ABC):
 
         return {
             "type": self.type.value,
-            "pass_scenario": pass_scenario_dict,
-            "fail_scenario": fail_scenario_dict,
+            "passScenario": pass_scenario_dict,
+            "failScenario": fail_scenario_dict,
         }
 
     def get_evaluation_result(self) -> Optional[dict]:

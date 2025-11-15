@@ -35,8 +35,8 @@ class RiskScoringRule(PipelineStep):
         result = super().to_dict()
         result.update(
             {
-                "max_risk_score": self.max_risk_score,
-                "loan_caps": self.loan_caps.to_dicts(),
+                "maxRiskScore": self.max_risk_score,
+                "loanCaps": self.loan_caps.to_dicts(),
             }
         )
 

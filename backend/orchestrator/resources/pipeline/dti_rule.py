@@ -27,6 +27,6 @@ class DTIRule(PipelineStep):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result.update({"max_dti": self.max_dti})
+        result.update({"maxDTI": self.max_dti})
 
         return result
