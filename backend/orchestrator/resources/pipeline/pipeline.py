@@ -11,12 +11,14 @@ from orchestrator.utils.parsing import parse_pipeline_step
 class Pipeline:
     def __init__(
         self,
+        id_: str,
         name: str,
         description: str,
         version: str,
         status: PipelineStatus,
         root_step: PipelineStep,
     ):
+        self.id_ = id_
         self.name = name
         self.description = description
         self.version = version
@@ -36,6 +38,7 @@ class Pipeline:
 
     def to_dict(self) -> dict:
         return {
+            "id": self.id_,
             "name": self.name,
             "description": self.description,
             "version": self.version,
@@ -64,9 +67,10 @@ class Pipeline:
     def from_dao(cls, dao: PipelineDAO) -> "Pipeline":
         root_step = parse_pipeline_step(dao.current_version.steps)
         return cls(
+            id_=dao.id,
             name=dao.name,
             description=dao.description,
-            version=str(dao.current_version.version),
+            version=str(dao.current_version.version_number),
             status=PipelineStatus(dao.status),
             root_step=root_step,
         )

@@ -14,7 +14,7 @@ class LoanCapForCountry:
     def to_dict(self):
         return {
             "country": self.country.value,
-            "cap_amount": self.cap_amount,
+            "capAmount": self.cap_amount,
         }
 
 

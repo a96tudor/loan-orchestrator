@@ -20,7 +20,7 @@ class AmountPoliciesRule(PipelineStep):
         )
         self.loan_caps = loan_caps
 
-    def __evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
         cap_amount = self.loan_caps.get_cap_for_country(application.country)
 
         if application.amount <= cap_amount:

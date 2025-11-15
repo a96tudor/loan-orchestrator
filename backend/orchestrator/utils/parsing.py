@@ -9,7 +9,7 @@ from orchestrator.resources.pipeline.risk_scoring import RiskScoringRule
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
     Country,
-    PipelineStepEvaluationResult,
+    LoanApplicationResult,
     PipelineStepType,
 )
 from orchestrator.utils.logging import logger
@@ -31,13 +31,13 @@ def _parse_loan_caps(caps: List[Dict]) -> LoanCaps:
     other_cap = None
     for raw_cap in caps:
         if raw_cap["country"] == "OTHER":
-            other_cap = raw_cap["cap_amount"]
+            other_cap = raw_cap["capAmount"]
             continue
 
         loan_caps.append(
             LoanCapForCountry(
                 country=Country(raw_cap["country"]),
-                cap_amount=raw_cap["cap_amount"],
+                cap_amount=raw_cap["capAmount"],
             )
         )
 
@@ -102,7 +102,7 @@ PARSING_FUNCTIONS = {
 
 def parse_pipeline_step(
     steps: Union[Dict, str],
-) -> Union[PipelineStep, PipelineStepEvaluationResult]:
+) -> Union[PipelineStep, LoanApplicationResult]:
     logger.info(f"Parsing pipeline step: {steps}")
     if isinstance(steps, dict):
         step_type = steps.get("type")
@@ -114,7 +114,7 @@ def parse_pipeline_step(
             raise ParsingError(f"Unknown pipeline step type: {step_type}")
     elif isinstance(steps, str):
         try:
-            return PipelineStepEvaluationResult(steps)
+            return LoanApplicationResult(steps)
         except ValueError:
             raise ParsingError(f"Unknown evaluation result: {steps}")
     else:

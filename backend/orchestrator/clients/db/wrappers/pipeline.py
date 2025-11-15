@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import uuid4
 
 from orchestrator.clients.db.schema import Pipeline, PipelineVersion
 from orchestrator.clients.db.wrappers.base import BaseDBWrapper
@@ -21,17 +22,21 @@ class PipelinesDBWrapper(BaseDBWrapper):
         steps: dict,
     ) -> Pipeline:
         # Creating the version first
+        pipeline_version_id = str(uuid4())
         pipeline_version = self._create_and_upsert_model(
             model_class=PipelineVersion,
-            version=1,
+            id=pipeline_version_id,
+            version_number=1,
             steps=steps,
         )
 
+        pipeline_id = str(uuid4())
         # Then creating the pipeline itself
         new_pipeline = self._create_and_upsert(
+            id=pipeline_id,
             name=name,
             description=description,
-            current_version_id=pipeline_version.id,
+            current_version_id=pipeline_version_id,
         )
 
         return new_pipeline

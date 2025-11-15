@@ -27,12 +27,12 @@ class PipelineStep(abc.ABC):
         self.evaluation_duration: float = 0.0
 
     @abc.abstractmethod
-    def __evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
         raise NotImplementedError("This method should be implemented by subclasses")
 
     def __timed_evaluation(self, application: Application) -> LoanApplicationResult:
         start_time = time()
-        result = self.__evaluate(application)
+        result = self._evaluate(application)
         end_time = time()
         self.evaluation_duration = end_time - start_time
         self.evaluated = True

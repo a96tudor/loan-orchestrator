@@ -17,7 +17,7 @@ class DTIRule(PipelineStep):
         super().__init__(PipelineStepType.DTI_RULE, pass_scenario, fail_scenario)
         self.max_dti = max_dti
 
-    def __evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
         dti_value = application.declared_debts / application.monthly_income
 
         if dti_value < self.max_dti:

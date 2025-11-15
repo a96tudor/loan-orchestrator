@@ -22,7 +22,7 @@ class RiskScoringRule(PipelineStep):
         self.max_risk_score = max_risk_score
         self.loan_caps = loan_caps
 
-    def __evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
         loan_cap = self.loan_caps.get_cap_for_country(application.country)
         risk_score = (application.dti * 100) + (application.amount / loan_cap * 20)
 
