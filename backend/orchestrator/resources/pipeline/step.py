@@ -1,6 +1,6 @@
 import abc
 from time import time
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 from orchestrator.resources.application import Application
 from orchestrator.resources.types import (
@@ -27,22 +27,25 @@ class PipelineStep(abc.ABC):
         self.evaluation_duration: float = 0.0
 
     @abc.abstractmethod
-    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(
+        self, application: Application
+    ) -> Tuple[PipelineStepEvaluationResult, Optional[float]]:
         raise NotImplementedError("This method should be implemented by subclasses")
 
     def __timed_evaluation(self, application: Application) -> EvaluationResult:
         start_time = time()
-        result = self._evaluate(application)
+        result, result_value = self._evaluate(application)
         end_time = time()
+
         self.evaluation_duration = end_time - start_time
         self.evaluated = True
+        self.evaluation_result = result
+        self.evaluation_result_value = result_value
+
         return result
 
     def execute(self, application: Application) -> EvaluationResult:
         eval_result = self.__timed_evaluation(application)
-
-        self.evaluation_result = eval_result
-        self.evaluated = True
 
         if eval_result == PipelineStepEvaluationResult.PASS:
             next_step = self.pass_scenario

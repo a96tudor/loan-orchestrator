@@ -59,7 +59,7 @@ class Pipeline:
             },
             "steps": self.root_step.to_dict(),
             "eval": self.root_step.get_evaluation_result(),
-            "run_result": self.run_result,
+            "run_result": self.run_result.value,
             "run_duration": self.run_time,
         }
 

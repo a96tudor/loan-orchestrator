@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
@@ -17,13 +19,15 @@ class DTIRule(PipelineStep):
         super().__init__(PipelineStepType.DTI_RULE, pass_scenario, fail_scenario)
         self.max_dti = max_dti
 
-    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
-        dti_value = application.declared_debts / application.monthly_income
+    def _evaluate(
+        self, application: Application
+    ) -> Tuple[PipelineStepEvaluationResult, Optional[float]]:
+        dti_value = application.dti
 
         if dti_value < self.max_dti:
-            return PipelineStepEvaluationResult.PASS
+            return PipelineStepEvaluationResult.PASS, dti_value
         else:
-            return PipelineStepEvaluationResult.FAIL
+            return PipelineStepEvaluationResult.FAIL, dti_value
 
     def to_dict(self) -> dict:
         result = super().to_dict()

@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.loan_cap import LoanCaps
 from orchestrator.resources.pipeline.step import PipelineStep
@@ -22,14 +24,16 @@ class RiskScoringRule(PipelineStep):
         self.max_risk_score = max_risk_score
         self.loan_caps = loan_caps
 
-    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(
+        self, application: Application
+    ) -> Tuple[PipelineStepEvaluationResult, Optional[float]]:
         loan_cap = self.loan_caps.get_cap_for_country(application.country)
         risk_score = (application.dti * 100) + (application.amount / loan_cap * 20)
 
         if risk_score >= self.max_risk_score:
-            return PipelineStepEvaluationResult.PASS
+            return PipelineStepEvaluationResult.PASS, risk_score
         else:
-            return PipelineStepEvaluationResult.FAIL
+            return PipelineStepEvaluationResult.FAIL, risk_score
 
     def to_dict(self) -> dict:
         result = super().to_dict()

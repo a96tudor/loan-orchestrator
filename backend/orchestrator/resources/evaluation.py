@@ -50,11 +50,5 @@ class Evaluation:
 
     def run(self):
         self.pipeline.run_on_application(self.application)
-
-    @property
-    def result(self):
-        return self.pipeline.run_result
-
-    @property
-    def details(self):
-        return self.pipeline.run_log
+        self.result = self.pipeline.run_result
+        self.details = self.pipeline.run_log

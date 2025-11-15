@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.loan_cap import LoanCaps
 from orchestrator.resources.pipeline.step import PipelineStep
@@ -20,13 +22,15 @@ class AmountPoliciesRule(PipelineStep):
         )
         self.loan_caps = loan_caps
 
-    def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
+    def _evaluate(
+        self, application: Application
+    ) -> Tuple[PipelineStepEvaluationResult, Optional[float]]:
         cap_amount = self.loan_caps.get_cap_for_country(application.country)
 
         if application.amount <= cap_amount:
-            return PipelineStepEvaluationResult.PASS
+            return PipelineStepEvaluationResult.PASS, cap_amount
         else:
-            return PipelineStepEvaluationResult.FAIL
+            return PipelineStepEvaluationResult.FAIL, cap_amount
 
     def to_dict(self) -> dict:
         result = super().to_dict()

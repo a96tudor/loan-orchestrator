@@ -1,4 +1,3 @@
-import abc
 import queue
 import threading
 from dataclasses import dataclass

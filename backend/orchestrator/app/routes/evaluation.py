@@ -9,6 +9,7 @@ from orchestrator.resources.types import (
     ApplicationEvaluationStatus,
     ApplicationStatus,
     EvaluationResult,
+    PipelineStatus,
 )
 from orchestrator.utils.async_evaluator import async_evaluator
 from orchestrator.utils.logging import log_execution_time, logger
@@ -31,12 +32,26 @@ def evaluate_application() -> Response:
             status=400,
             mimetype="application/json",
         )
+    elif application_dao.status == ApplicationStatus.IN_REVIEW:
+        logger.error(f"Application with key {application_key} is already in review")
+        return Response(
+            response='{"error": "Application is already in review"}',
+            status=400,
+            mimetype="application/json",
+        )
 
     pipeline_dao = get_pipeline_dao_by_id(pipeline_id)
     if pipeline_dao is None:
         logger.error(f"Pipeline with ID {pipeline_id} not found")
         return Response(
             response='{"error": "Pipeline not found"}',
+            status=400,
+            mimetype="application/json",
+        )
+    elif pipeline_dao.status != PipelineStatus.ACTIVE:
+        logger.error(f"Pipeline with ID {pipeline_id} is not active")
+        return Response(
+            response='{"error": "Selected pipeline is not active"}',
             status=400,
             mimetype="application/json",
         )
