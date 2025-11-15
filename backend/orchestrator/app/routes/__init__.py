@@ -5,7 +5,11 @@ from .application import (
     get_application_by_key,
     get_loan_applications,
 )
-from .evaluation import evaluate_application, get_evaluation_by_id
+from .evaluation import (
+    evaluate_application,
+    get_evaluation_by_id,
+    get_evaluations_by_params,
+)
 from .health import health_check
 from .pipeline import (
     create_pipeline,
@@ -45,5 +49,10 @@ def register_routes(app: Flask) -> None:
     app.add_url_rule(
         "/evaluation/<string:evaluation_id>",
         view_func=get_evaluation_by_id,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        "/evaluations",
+        view_func=get_evaluations_by_params,
         methods=["GET"],
     )

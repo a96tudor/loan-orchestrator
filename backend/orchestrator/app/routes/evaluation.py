@@ -92,3 +92,27 @@ def get_evaluation_by_id(evaluation_id: str) -> Response:
 
     evaluation_dto = EvaluationDTO.from_dao(evaluation_dao)
     return jsonify(evaluation_dto.to_dict())
+
+
+@run_route_safely(message="Error getting evaluation by ID", unwrap_body=False)
+@log_execution_time(description="Getting evaluations by parameters")
+def get_evaluations_by_params() -> Response:
+    application_key = request.args.get("applicationKey")
+    pipeline_id = request.args.get("pipelineId")
+    status_in = request.args.getlist("statusIn")
+    status_not_in = request.args.getlist("statusNotIn")
+
+    db_wrapper = EvaluationsDBWrapper()
+    evaluations_dao = db_wrapper.get_evaluations_by_values(
+        application_key=application_key,
+        pipeline_id=pipeline_id,
+        status_in=status_in,
+        status_not_in=status_not_in,
+    )
+
+    evaluations_dto = [
+        EvaluationDTO.from_dao(evaluation_dao) for evaluation_dao in evaluations_dao
+    ]
+    evaluations_dict = [evaluation_dto.to_dict() for evaluation_dto in evaluations_dto]
+
+    return jsonify(evaluations_dict)
