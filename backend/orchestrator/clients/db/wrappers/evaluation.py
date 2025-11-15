@@ -30,3 +30,7 @@ class EvaluationsDBWrapper(BaseDBWrapper):
     def delete_evaluation(self, evaluation: ApplicationEvaluation) -> None:
         """Delete an application evaluation entry."""
         self._delete_model(evaluation)
+
+    @log_execution_time("Retrieving evaluation by ID")
+    def get_evaluation_by_id(self, evaluation_id: str) -> ApplicationEvaluation:
+        return self._get_model_by_id(evaluation_id)

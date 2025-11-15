@@ -11,7 +11,7 @@ from orchestrator.utils.wrappers import run_route_safely
 
 
 @run_route_safely(message="Error evaluating application", unwrap_body=True)
-@log_execution_time(description="Evaluating loan application")
+@log_execution_time(description="Creating loan application evaluation")
 def evaluate_application() -> Response:
     evaluation_request = request.get_json(force=True)
 
@@ -73,4 +73,22 @@ def evaluate_application() -> Response:
         )
         pass
 
+    return jsonify(evaluation_dto.to_dict())
+
+
+@run_route_safely(message="Error getting evaluation by ID", unwrap_body=False)
+@log_execution_time(description="Getting evaluation by ID")
+def get_evaluation_by_id(evaluation_id: str) -> Response:
+    db_wrapper = EvaluationsDBWrapper()
+    evaluation_dao = db_wrapper.get_evaluation_by_id(evaluation_id)
+
+    if evaluation_dao is None:
+        logger.error(f"Evaluation with ID {evaluation_id} not found")
+        return Response(
+            response='{"error": "Evaluation not found"}',
+            status=404,
+            mimetype="application/json",
+        )
+
+    evaluation_dto = EvaluationDTO.from_dao(evaluation_dao)
     return jsonify(evaluation_dto.to_dict())
