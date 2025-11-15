@@ -1,16 +1,17 @@
-from flask import Response, jsonify, request
 from typing import Optional
 
+from flask import Response, jsonify, request
+
+from orchestrator.clients.db.schema import Pipeline as PipelineDAO
 from orchestrator.clients.db.wrappers.pipeline import PipelinesDBWrapper
 from orchestrator.resources.pipeline.pipeline import Pipeline
 from orchestrator.resources.types import PipelineStatus
 from orchestrator.utils.logging import log_execution_time, logger
 from orchestrator.utils.parsing import validate_pipeline_dict
 from orchestrator.utils.wrappers import run_route_safely
-from orchestrator.clients.db.schema import Pipeline as PipelineDAO
 
 
-def __get_pipeline_dao_by_id(pipeline_id: str) -> Optional[PipelineDAO]:
+def get_pipeline_dao_by_id(pipeline_id: str) -> Optional[PipelineDAO]:
     try:
         return PipelinesDBWrapper().get_pipeline_by_id(pipeline_id)
     except Exception as e:
@@ -50,7 +51,7 @@ def create_pipeline() -> Response:
 @run_route_safely(message="Error fetching pipeline", unwrap_body=False)
 @log_execution_time(description="Fetching pipeline by ID")
 def get_pipeline_by_id(pipeline_id: str) -> Response:
-    pipeline_dao = __get_pipeline_dao_by_id(pipeline_id)
+    pipeline_dao = get_pipeline_dao_by_id(pipeline_id)
 
     if not pipeline_dao:
         logger.error(f"Pipeline with ID {pipeline_id} not found")
@@ -94,7 +95,7 @@ def get_pipelines() -> Response:
 @run_route_safely(message="Error patching pipeline", unwrap_body=True)
 @log_execution_time(description="Patching pipeline by ID")
 def patch_pipeline_by_id(pipeline_id: str) -> Response:
-    existing_pipeline_dao = __get_pipeline_dao_by_id(pipeline_id)
+    existing_pipeline_dao = get_pipeline_dao_by_id(pipeline_id)
 
     if not existing_pipeline_dao:
         logger.error(f"Pipeline with ID {pipeline_id} not found")

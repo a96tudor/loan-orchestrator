@@ -1,7 +1,9 @@
 import json
+from typing import Optional
 
 from flask import Response, jsonify, request
 
+from orchestrator.clients.db.schema import Application as ApplicationDAO
 from orchestrator.clients.db.wrappers.application import ApplicationsDBWrapper
 from orchestrator.resources.application import Application as ApplicationDTO
 from orchestrator.resources.types import Country
@@ -53,6 +55,16 @@ def get_loan_applications() -> Response:
     return jsonify([app.to_dict() for app in applications])
 
 
+def get_application_dao_by_key(application_key: str) -> Optional[ApplicationDAO]:
+    wrapper = ApplicationsDBWrapper()
+    application_daos = wrapper.get_applications_by_value(key=application_key)
+
+    if not application_daos:
+        return None
+
+    return application_daos[0]
+
+
 def get_application_by_key(application_key: str) -> Response:
     @run_route_safely(
         message=f"Error fetching loan application with key {application_key}",
@@ -62,10 +74,8 @@ def get_application_by_key(application_key: str) -> Response:
         description=f"Fetching loan application with key {application_key}"
     )
     def inner() -> Response:
-        wrapper = ApplicationsDBWrapper()
-        application_daos = wrapper.get_applications_by_value(key=application_key)
-
-        if not application_daos:
+        application_dao = get_application_dao_by_key(application_key)
+        if not application_dao:
             logger.warning(f"Application with key {application_key} not found")
             response = json.dumps(
                 {"error": f"Application with key {application_key} not found"}
@@ -76,7 +86,7 @@ def get_application_by_key(application_key: str) -> Response:
                 mimetype="application/json",
             )
 
-        application = ApplicationDTO.from_dao(application_daos[0])
+        application = ApplicationDTO.from_dao(application_dao)
         return jsonify(application.to_dict())
 
     return inner()

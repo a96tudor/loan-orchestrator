@@ -7,11 +7,7 @@ from orchestrator.resources.pipeline.dti_rule import DTIRule
 from orchestrator.resources.pipeline.loan_cap import LoanCapForCountry, LoanCaps
 from orchestrator.resources.pipeline.risk_scoring import RiskScoringRule
 from orchestrator.resources.pipeline.step import PipelineStep
-from orchestrator.resources.types import (
-    Country,
-    LoanApplicationResult,
-    PipelineStepType,
-)
+from orchestrator.resources.types import Country, EvaluationResult, PipelineStepType
 from orchestrator.utils.logging import logger
 
 
@@ -102,7 +98,7 @@ PARSING_FUNCTIONS = {
 
 def parse_pipeline_step(
     steps: Union[Dict, str],
-) -> Union[PipelineStep, LoanApplicationResult]:
+) -> Union[PipelineStep, EvaluationResult]:
     logger.info(f"Parsing pipeline step: {steps}")
     if isinstance(steps, dict):
         step_type = steps.get("type")
@@ -114,7 +110,7 @@ def parse_pipeline_step(
             raise ParsingError(f"Unknown pipeline step type: {step_type}")
     elif isinstance(steps, str):
         try:
-            return LoanApplicationResult(steps)
+            return EvaluationResult(steps)
         except ValueError:
             raise ParsingError(f"Unknown evaluation result: {steps}")
     else:

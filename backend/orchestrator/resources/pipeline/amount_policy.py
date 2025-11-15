@@ -2,7 +2,7 @@ from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.loan_cap import LoanCaps
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
-    LoanApplicationResult,
+    EvaluationResult,
     PipelineStepEvaluationResult,
     PipelineStepType,
 )
@@ -12,8 +12,8 @@ class AmountPoliciesRule(PipelineStep):
     def __init__(
         self,
         loan_caps: LoanCaps,
-        pass_scenario: PipelineStep | LoanApplicationResult,
-        fail_scenario: PipelineStep | LoanApplicationResult,
+        pass_scenario: PipelineStep | EvaluationResult,
+        fail_scenario: PipelineStep | EvaluationResult,
     ):
         super().__init__(
             PipelineStepType.AMOUNT_POLICY_RULE, pass_scenario, fail_scenario

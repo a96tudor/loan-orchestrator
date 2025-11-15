@@ -2,7 +2,7 @@ from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.loan_cap import LoanCaps
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
-    LoanApplicationResult,
+    EvaluationResult,
     PipelineStepEvaluationResult,
     PipelineStepType,
 )
@@ -12,8 +12,8 @@ class RiskScoringRule(PipelineStep):
     def __init__(
         self,
         max_risk_score: float,
-        pass_scenario: PipelineStep | LoanApplicationResult,
-        fail_scenario: PipelineStep | LoanApplicationResult,
+        pass_scenario: PipelineStep | EvaluationResult,
+        fail_scenario: PipelineStep | EvaluationResult,
         loan_caps: LoanCaps,
     ):
         super().__init__(

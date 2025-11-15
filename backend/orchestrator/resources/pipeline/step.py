@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 from orchestrator.resources.application import Application
 from orchestrator.resources.types import (
-    LoanApplicationResult,
+    EvaluationResult,
     PipelineStepEvaluationResult,
     PipelineStepType,
 )
@@ -14,15 +14,15 @@ class PipelineStep(abc.ABC):
     def __init__(
         self,
         type: PipelineStepType,
-        pass_scenario: Union[LoanApplicationResult, "PipelineStep"],
-        fail_scenario: Union[LoanApplicationResult, "PipelineStep"],
+        pass_scenario: Union[EvaluationResult, "PipelineStep"],
+        fail_scenario: Union[EvaluationResult, "PipelineStep"],
     ):
         self.pass_scenario = pass_scenario
         self.fail_scenario = fail_scenario
         self.type = type
 
         self.evaluated: bool = False
-        self.evaluation_result: Optional[LoanApplicationResult] = None
+        self.evaluation_result: Optional[EvaluationResult] = None
         self.evaluation_result_value: Optional[float] = None
         self.evaluation_duration: float = 0.0
 
@@ -30,7 +30,7 @@ class PipelineStep(abc.ABC):
     def _evaluate(self, application: Application) -> PipelineStepEvaluationResult:
         raise NotImplementedError("This method should be implemented by subclasses")
 
-    def __timed_evaluation(self, application: Application) -> LoanApplicationResult:
+    def __timed_evaluation(self, application: Application) -> EvaluationResult:
         start_time = time()
         result = self._evaluate(application)
         end_time = time()
@@ -38,7 +38,7 @@ class PipelineStep(abc.ABC):
         self.evaluated = True
         return result
 
-    def execute(self, application: Application) -> LoanApplicationResult:
+    def execute(self, application: Application) -> EvaluationResult:
         eval_result = self.__timed_evaluation(application)
 
         self.evaluation_result = eval_result

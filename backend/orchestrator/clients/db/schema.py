@@ -8,7 +8,7 @@ from sqlalchemy.types import INTEGER, JSON, NUMERIC, TEXT, DateTime, String
 from orchestrator.resources.types import (
     ApplicationEvaluationStatus,
     ApplicationStatus,
-    LoanApplicationResult,
+    EvaluationResult,
     PipelineStatus,
 )
 
@@ -137,7 +137,7 @@ class ApplicationEvaluation(_BASE):
         nullable=False,
         default=ApplicationEvaluationStatus.PENDING,
     )
-    result = Column(SQLAlchemyEnum(LoanApplicationResult), nullable=True, default=None)
+    result = Column(SQLAlchemyEnum(EvaluationResult), nullable=True, default=None)
     details = Column(JSON, nullable=True, default=None)
 
     created_at = Column(

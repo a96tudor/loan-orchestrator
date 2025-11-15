@@ -17,7 +17,7 @@ class ApplicationStatus(Enum):
     REVIEWING_ERROR = "REVIEWING_ERROR"
 
 
-class LoanApplicationResult(Enum):
+class EvaluationResult(Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     NEEDS_REVIEW = "NEEDS_REVIEW"

@@ -5,8 +5,8 @@ from pyutils.database.sqlalchemy.filters import InListFilter
 
 from orchestrator.clients.db.schema import Pipeline, PipelineVersion
 from orchestrator.clients.db.wrappers.base import BaseDBWrapper
-from orchestrator.utils.logging import log_execution_time
 from orchestrator.resources.types import PipelineStatus
+from orchestrator.utils.logging import log_execution_time
 
 
 class PipelinesDBWrapper(BaseDBWrapper):
@@ -18,7 +18,8 @@ class PipelinesDBWrapper(BaseDBWrapper):
         return self._get_model_by_id(pipeline_id)
 
     def _create_pipeline_version(
-        self, version_number: int,
+        self,
+        version_number: int,
         steps: dict,
         previous_version_id: Optional[str] = None,
     ) -> PipelineVersion:
@@ -90,7 +91,6 @@ class PipelinesDBWrapper(BaseDBWrapper):
             return False
 
         return True
-
 
     def update_pipeline(
         self,

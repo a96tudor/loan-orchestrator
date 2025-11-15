@@ -4,7 +4,7 @@ from typing import Optional
 from orchestrator.clients.db.schema import Pipeline as PipelineDAO
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.step import PipelineStep
-from orchestrator.resources.types import LoanApplicationResult, PipelineStatus
+from orchestrator.resources.types import EvaluationResult, PipelineStatus
 from orchestrator.utils.parsing import parse_pipeline_step
 
 
@@ -25,10 +25,10 @@ class Pipeline:
         self.status = status
         self.root_step = root_step
 
-        self.run_result: Optional[LoanApplicationResult] = None
+        self.run_result: Optional[EvaluationResult] = None
         self.run_time: float = 0.0
 
-    def run_on_application(self, application: Application) -> LoanApplicationResult:
+    def run_on_application(self, application: Application) -> EvaluationResult:
         start_time = time()
         self.run_result = self.root_step.execute(application)
         end_time = time()

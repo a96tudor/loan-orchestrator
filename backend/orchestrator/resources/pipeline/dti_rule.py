@@ -1,7 +1,7 @@
 from orchestrator.resources.application import Application
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import (
-    LoanApplicationResult,
+    EvaluationResult,
     PipelineStepEvaluationResult,
     PipelineStepType,
 )
@@ -11,8 +11,8 @@ class DTIRule(PipelineStep):
     def __init__(
         self,
         max_dti: float,
-        pass_scenario: PipelineStep | LoanApplicationResult,
-        fail_scenario: PipelineStep | LoanApplicationResult,
+        pass_scenario: PipelineStep | EvaluationResult,
+        fail_scenario: PipelineStep | EvaluationResult,
     ):
         super().__init__(PipelineStepType.DTI_RULE, pass_scenario, fail_scenario)
         self.max_dti = max_dti
