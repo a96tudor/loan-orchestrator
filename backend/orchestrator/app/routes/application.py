@@ -1,3 +1,5 @@
+import json
+
 from flask import Response, jsonify, request
 
 from orchestrator.clients.db.wrappers.application import ApplicationsDBWrapper
@@ -49,3 +51,32 @@ def get_loan_applications() -> Response:
     applications = [ApplicationDTO.from_dao(app_dao) for app_dao in application_daos]
 
     return jsonify([app.to_dict() for app in applications])
+
+
+def get_application_by_key(application_key: str) -> Response:
+    @run_route_safely(
+        message=f"Error fetching loan application with key {application_key}",
+        unwrap_body=False,
+    )
+    @log_execution_time(
+        description=f"Fetching loan application with key {application_key}"
+    )
+    def inner() -> Response:
+        wrapper = ApplicationsDBWrapper()
+        application_daos = wrapper.get_applications_by_value(key=application_key)
+
+        if not application_daos:
+            logger.warning(f"Application with key {application_key} not found")
+            response = json.dumps(
+                {"error": f"Application with key {application_key} not found"}
+            )
+            return Response(
+                response=response,
+                status=404,
+                mimetype="application/json",
+            )
+
+        application = ApplicationDTO.from_dao(application_daos[0])
+        return jsonify(application.to_dict())
+
+    return inner()
