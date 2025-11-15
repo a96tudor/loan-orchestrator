@@ -32,3 +32,29 @@ def create_pipeline() -> Response:
     pipeline_dto = Pipeline.from_dao(pipeline_dao)
 
     return jsonify(pipeline_dto.to_dict())
+
+
+@run_route_safely(message="Error fetching pipeline", unwrap_body=False)
+@log_execution_time(description="Fetching pipeline by ID")
+def get_pipeline_by_id(pipeline_id: str) -> Response:
+    db_wrapper = PipelinesDBWrapper()
+
+    try:
+        pipeline_dao = db_wrapper.get_pipeline_by_id(pipeline_id)
+    except Exception as e:
+        if "not found" in str(e):
+            pipeline_dao = None
+        else:
+            raise
+
+    if not pipeline_dao:
+        logger.error(f"Pipeline with ID {pipeline_id} not found")
+        return Response(
+            response='{"error": "Pipeline not found"}',
+            status=404,
+            mimetype="application/json",
+        )
+
+    pipeline_dto = Pipeline.from_dao(pipeline_dao)
+
+    return jsonify(pipeline_dto.to_dict())

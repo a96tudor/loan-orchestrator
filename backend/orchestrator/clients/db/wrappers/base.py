@@ -49,7 +49,7 @@ class BaseDBWrapper(DBWrapperPyUtils):
             filters=[EqualityFilter(self.model_class.id, model_id)],
             error_message=f"Model with ID {model_id} not found.",
             at_least_one_filter=True,
-            return_type=self.GetResultType.ONE_OR_NONE,
+            return_type=self.GetResultType.FIRST,
         )
 
     def _get_model(
