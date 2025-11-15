@@ -26,7 +26,6 @@ class LoanApplicationResult(Enum):
 class PipelineStatus(Enum):
     ACTIVE = "ACTIVE"
     DISABLED = "DISABLED"
-    OLD_VERSION = "OLD_VERSION"
 
 
 class PipelineStepEvaluationResult(Enum):
