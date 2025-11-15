@@ -119,3 +119,12 @@ def parse_pipeline_step(
             raise ParsingError(f"Unknown evaluation result: {steps}")
     else:
         raise ParsingError("Invalid pipeline step format.")
+
+
+def validate_pipeline_dict(pipeline_dict: dict) -> bool:
+    try:
+        parse_pipeline_step(pipeline_dict)
+        return True
+    except ParsingError as e:
+        logger.error(f"Pipeline validation failed: {e}")
+        return False
