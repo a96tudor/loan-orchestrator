@@ -94,6 +94,8 @@ class PipelineVersion(_BASE):
     version_number = Column(INTEGER, nullable=False)
     steps = Column(JSON, nullable=False)
 
+    react_flow_nodes = Column(JSON, nullable=True)
+
     previous_version_id = Column(
         UUID(as_uuid=True),
         ForeignKey("pipeline_versions.id"),
