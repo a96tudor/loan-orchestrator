@@ -20,12 +20,6 @@ export function getApiBaseUrl(): string {
   // Access import.meta.env directly to get the value
   const url = import.meta.env.VITE_API_URL;
 
-  // Debug: log what we're getting (only in development)
-  if (import.meta.env.DEV) {
-    console.log('[API Config] VITE_API_URL from env:', url);
-    console.log('[API Config] All env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
-  }
-
   // Check if the URL is missing or empty (after trimming whitespace)
   if (!url || typeof url !== 'string' || url.trim() === '') {
     const envValue = import.meta.env.VITE_API_URL;
@@ -45,9 +39,6 @@ export function getApiBaseUrl(): string {
 
   // Trim any whitespace that might have been accidentally included
   const trimmedUrl = url.trim();
-  if (import.meta.env.DEV) {
-    console.log('[API Config] Using base URL:', trimmedUrl);
-  }
   return trimmedUrl;
 }
 

@@ -121,11 +121,6 @@ export class ApiClient {
     
     const url = this.buildUrl(endpoint, params);
     
-    // Debug logging in development
-    if (import.meta.env.DEV) {
-      console.log(`[API Client] ${options.method || 'GET'} ${url}`);
-    }
-    
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,

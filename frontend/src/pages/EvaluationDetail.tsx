@@ -43,7 +43,6 @@ const EvaluationDetail: React.FC = () => {
         setLoading(true);
         setError(null);
         const data = await getEvaluationById(evaluationId);
-        console.log('Evaluation data received:', data);
         setEvaluation(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load evaluation');
@@ -117,6 +116,7 @@ const EvaluationDetail: React.FC = () => {
         : reactFlowNodes as Record<string, any>;
       
       // Helper function to recursively find terminal nodes that were reached
+      // Only follows the path that was actually taken based on evaluation_result
       const extractTerminalNodes = (evalNode: any, stepsNode: any, parentFlowNodeId: string | null, isPassPath: boolean | null): void => {
         if (!evalNode || !stepsNode) return;
 
@@ -152,13 +152,19 @@ const EvaluationDetail: React.FC = () => {
         // Get the current node's flowNodeId
         const currentFlowNodeId = stepsNode.flowNodeId || parentFlowNodeId;
 
-        // Recursively process pass and fail scenarios
-        if (evalNode.pass_scenario_evaluation && stepsNode.passScenario) {
+        // Only follow the path that was actually taken based on evaluation_result
+        // evaluation_result tells us whether this node passed or failed
+        const evaluationResult = evalNode.evaluation_result;
+        
+        if (evaluationResult === 'PASS' && evalNode.pass_scenario_evaluation && stepsNode.passScenario) {
+          // Follow the pass path
           extractTerminalNodes(evalNode.pass_scenario_evaluation, stepsNode.passScenario, currentFlowNodeId, true);
-        }
-        if (evalNode.fail_scenario_evaluation && stepsNode.failScenario) {
+        } else if (evaluationResult === 'FAIL' && evalNode.fail_scenario_evaluation && stepsNode.failScenario) {
+          // Follow the fail path
           extractTerminalNodes(evalNode.fail_scenario_evaluation, stepsNode.failScenario, currentFlowNodeId, false);
         }
+        // If evaluation_result doesn't match or is missing, don't follow any path
+        // This ensures unreached terminal nodes remain grayed out
       };
 
       extractTerminalNodes(evalData, stepsData, null, null);

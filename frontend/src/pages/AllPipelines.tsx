@@ -24,7 +24,6 @@ const AllPipelines: React.FC = () => {
         setPipelinesLoading(true);
         setPipelinesError(null);
         const data = await getPipelines();
-        console.log('Pipelines:', data);
         setPipelines(data);
       } catch (err) {
         setPipelinesError(err instanceof Error ? err.message : 'Failed to load pipelines');
