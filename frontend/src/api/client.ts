@@ -5,7 +5,7 @@
  * and automatic JSON parsing.
  */
 
-import { apiConfig } from './config';
+import { getApiBaseUrl } from './config';
 import { ApiError } from './types';
 
 export interface RequestOptions extends RequestInit {
@@ -37,18 +37,44 @@ export class ApiClientError extends Error {
  * HTTP Client class for making API requests
  */
 export class ApiClient {
-  private baseUrl: string;
+  private baseUrl?: string;
 
-  constructor(baseUrl: string = apiConfig.baseUrl) {
-    // Remove trailing slash from base URL
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+  constructor(baseUrl?: string) {
+    // If baseUrl is provided, use it; otherwise it will be read dynamically
+    if (baseUrl) {
+      // Remove trailing slash from base URL
+      this.baseUrl = baseUrl.replace(/\/$/, '');
+    }
+  }
+
+  /**
+   * Gets the base URL, reading from environment if not set
+   */
+  private getBaseUrl(): string {
+    if (this.baseUrl) {
+      return this.baseUrl;
+    }
+    // Read from environment variable dynamically
+    const url = getApiBaseUrl();
+    // Remove trailing slash
+    return url.replace(/\/$/, '');
   }
 
   /**
    * Builds a URL with query parameters
    */
   private buildUrl(endpoint: string, params?: Record<string, string | string[] | undefined>): string {
-    const url = new URL(endpoint, this.baseUrl);
+    const baseUrl = this.getBaseUrl();
+    
+    // Remove leading slash from endpoint if present, as we'll combine it with baseUrl
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    
+    // Ensure baseUrl doesn't have a trailing slash
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    
+    // Combine baseUrl and endpoint
+    const fullUrl = `${cleanBaseUrl}/${cleanEndpoint}`;
+    const url = new URL(fullUrl);
     
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -94,6 +120,12 @@ export class ApiClient {
     const { params, ...fetchOptions } = options;
     
     const url = this.buildUrl(endpoint, params);
+    
+    // Debug logging in development
+    if (import.meta.env.DEV) {
+      console.log(`[API Client] ${options.method || 'GET'} ${url}`);
+    }
+    
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,

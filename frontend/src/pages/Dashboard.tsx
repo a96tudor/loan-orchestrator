@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import ActionCard from '../components/ActionCard';
 import StatusBadge from '../components/StatusBadge';
+import { getEvaluationStats } from '../api/evaluations';
+import type { EvaluationStats } from '../api/types';
 
 const Dashboard: React.FC = () => {
+  const [stats, setStats] = useState<EvaluationStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getEvaluationStats();
+        setStats(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load statistics');
+        console.error('Error fetching evaluation stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
   // Icon components for statistics
   const DocumentIcon = () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,38 +133,69 @@ const Dashboard: React.FC = () => {
         {/* Statistics Section */}
         <section className="mb-10">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Statistics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <StatCard
-              icon={<DocumentIcon />}
-              value="1258"
-              label="Total Applications"
-              description="All processed applications."
-            />
-            <StatCard
-              icon={<CheckIcon />}
-              value="780"
-              label="Approved"
-              description="62.0% of total."
-            />
-            <StatCard
-              icon={<XIcon />}
-              value="310"
-              label="Rejected"
-              description="24.6% of total."
-            />
-            <StatCard
-              icon={<ExclamationIcon />}
-              value="168"
-              label="Needs Review"
-              description="13.4% of total."
-            />
-            <StatCard
-              icon={<ClockIcon />}
-              value="45.7 seconds"
-              label="Avg Processing Time"
-              description="Per application."
-            />
-          </div>
+          {loading ? (
+            <div className="text-center py-8 text-gray-600">Loading statistics...</div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-600">Error: {error}</div>
+          ) : stats ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {(() => {
+                const totalApplications =
+                  (stats.byResult.APPROVED || 0) +
+                  (stats.byResult.REJECTED || 0) +
+                  (stats.byResult.NEEDS_REVIEW || 0);
+                const approved = stats.byResult.APPROVED || 0;
+                const rejected = stats.byResult.REJECTED || 0;
+                const needsReview = stats.byResult.NEEDS_REVIEW || 0;
+                const approvedPercent =
+                  totalApplications > 0 ? ((approved / totalApplications) * 100).toFixed(1) : '0.0';
+                const rejectedPercent =
+                  totalApplications > 0 ? ((rejected / totalApplications) * 100).toFixed(1) : '0.0';
+                const needsReviewPercent =
+                  totalApplications > 0
+                    ? ((needsReview / totalApplications) * 100).toFixed(1)
+                    : '0.0';
+                const avgDuration = stats.averageDuration
+                  ? `${stats.averageDuration.toFixed(1)} seconds`
+                  : '0.0 seconds';
+
+                return (
+                  <>
+                    <StatCard
+                      icon={<DocumentIcon />}
+                      value={totalApplications.toLocaleString()}
+                      label="Total Applications"
+                      description="All processed applications."
+                    />
+                    <StatCard
+                      icon={<CheckIcon />}
+                      value={approved.toLocaleString()}
+                      label="Approved"
+                      description={`${approvedPercent}% of total.`}
+                    />
+                    <StatCard
+                      icon={<XIcon />}
+                      value={rejected.toLocaleString()}
+                      label="Rejected"
+                      description={`${rejectedPercent}% of total.`}
+                    />
+                    <StatCard
+                      icon={<ExclamationIcon />}
+                      value={needsReview.toLocaleString()}
+                      label="Needs Review"
+                      description={`${needsReviewPercent}% of total.`}
+                    />
+                    <StatCard
+                      icon={<ClockIcon />}
+                      value={avgDuration}
+                      label="Avg Processing Time"
+                      description="Per application."
+                    />
+                  </>
+                );
+              })()}
+            </div>
+          ) : null}
         </section>
 
         {/* Quick Actions Section */}
