@@ -41,6 +41,7 @@ def create_pipeline() -> Response:
         name=pipeline_data["name"],
         description=pipeline_data["description"],
         steps=pipeline_data["steps"],
+        react_flow_nodes=pipeline_data["reactFlowNodes"],
     )
 
     pipeline_dto = Pipeline.from_dao(pipeline_dao)

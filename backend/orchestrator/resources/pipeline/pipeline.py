@@ -17,6 +17,7 @@ class Pipeline:
         version: str,
         status: PipelineStatus,
         root_step: PipelineStep,
+        react_flow_nodes: dict,
     ):
         self.id_ = id_
         self.name = name
@@ -24,6 +25,7 @@ class Pipeline:
         self.version = version
         self.status = status
         self.root_step = root_step
+        self.react_flow_nodes = react_flow_nodes
 
         self.run_result: Optional[EvaluationResult] = None
         self.run_time: float = 0.0
@@ -44,6 +46,7 @@ class Pipeline:
             "version": self.version,
             "status": self.status.value,
             "steps": self.root_step.to_dict(),
+            "reactFlowNodes": self.react_flow_nodes,
         }
 
     @property
@@ -73,4 +76,5 @@ class Pipeline:
             version=str(dao.current_version.version_number),
             status=PipelineStatus(dao.status),
             root_step=root_step,
+            react_flow_nodes=dao.current_version.react_flow_nodes or {},
         )

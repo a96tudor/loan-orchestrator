@@ -21,7 +21,7 @@ class PipelinesDBWrapper(BaseDBWrapper):
         self,
         version_number: int,
         steps: dict,
-        previous_version_id: Optional[str] = None,
+        react_flow_nodes: dict = None,
     ) -> PipelineVersion:
         pipeline_version_id = str(uuid4())
         pipeline_version = self._create_and_upsert_model(
@@ -29,6 +29,7 @@ class PipelinesDBWrapper(BaseDBWrapper):
             id=pipeline_version_id,
             version_number=version_number,
             steps=steps,
+            react_flow_nodes=react_flow_nodes,
         )
         return pipeline_version
 
@@ -38,11 +39,13 @@ class PipelinesDBWrapper(BaseDBWrapper):
         name: str,
         description: str,
         steps: dict,
+        react_flow_nodes: dict,
     ) -> Pipeline:
         # Creating the version first
         pipeline_version = self._create_pipeline_version(
             version_number=1,
             steps=steps,
+            react_flow_nodes=react_flow_nodes,
         )
 
         pipeline_id = str(uuid4())
