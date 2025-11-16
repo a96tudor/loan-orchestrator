@@ -57,6 +57,7 @@ _CORS = CORS(
         r"*": {
             "/evaluations/*": "*",
             "/application*": "*",
+            "/pipeline*": "*",
         }
     },
 )

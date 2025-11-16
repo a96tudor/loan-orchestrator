@@ -84,16 +84,18 @@ class PipelinesDBWrapper(BaseDBWrapper):
         if all(value is None for value in kwargs.values()):
             return False
 
-        if pipeline.current_version.steps == kwargs.get("steps"):
-            return False
-        if pipeline.name == kwargs.get("name"):
-            return False
-        if pipeline.description == kwargs.get("description"):
-            return False
-        if pipeline.status == kwargs.get("status"):
-            return False
+        if pipeline.current_version.steps != kwargs.get("steps"):
+            return True
+        if pipeline.name != kwargs.get("name"):
+            return True
+        if pipeline.description != kwargs.get("description"):
+            return True
+        if pipeline.status != kwargs.get("status"):
+            return True
+        if pipeline.current_version.react_flow_nodes != kwargs.get("react_flow_nodes"):
+            return True
 
-        return True
+        return False
 
     def update_pipeline(
         self,
@@ -101,6 +103,7 @@ class PipelinesDBWrapper(BaseDBWrapper):
         name: Optional[str] = None,
         description: Optional[str] = None,
         steps: Optional[dict] = None,
+        react_flow_nodes: Optional[dict] = None,
         status: Optional[PipelineStatus] = None,
     ) -> Pipeline:
         should_update = self.__should_update(
@@ -108,21 +111,25 @@ class PipelinesDBWrapper(BaseDBWrapper):
             name=name,
             description=description,
             steps=steps,
+            react_flow_nodes=react_flow_nodes,
             status=status,
         )
         if not should_update:
             return pipeline
 
-        if steps is not None:
+        if steps is not None and steps != pipeline.current_version.steps:
             # We need to create a new version
             version = pipeline.current_version.version_number + 1
             new_version = self._create_pipeline_version(
                 version_number=version,
                 steps=steps,
-                previous_version_id=pipeline.current_version.id,
             )
             pipeline.current_version_id = new_version.id
             pipeline.current_version = new_version
+
+        if react_flow_nodes is not None:
+            pipeline.current_version.react_flow_nodes = react_flow_nodes
+            self._upsert_model(pipeline.current_version)
 
         if name is not None:
             pipeline.name = name

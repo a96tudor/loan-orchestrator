@@ -127,6 +127,7 @@ def patch_pipeline_by_id(pipeline_id: str) -> Response:
         description=pipeline_data.get("description"),
         status=PipelineStatus(status) if status else None,
         steps=pipeline_data.get("steps"),
+        react_flow_nodes=pipeline_data.get("reactFlowNodes"),
     )
 
     pipeline_dto = Pipeline.from_dao(new_pipeline_dao)
