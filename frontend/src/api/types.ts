@@ -26,14 +26,6 @@ export type EvaluationResult = 'APPROVED' | 'REJECTED' | 'NEEDS_REVIEW';
 // Application Types
 // ============================================================================
 
-export interface CreateApplicationRequest {
-  applicantName: string;
-  amount: number;
-  monthlyIncome: number;
-  declaredDebts: number;
-  country: Country;
-  loanPurpose: string;
-}
 
 export interface Application {
   id: string;

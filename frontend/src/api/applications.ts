@@ -7,7 +7,6 @@
 import { apiClient } from './client';
 import type {
   Application,
-  CreateApplicationRequest,
   GetApplicationsParams,
 } from './types';
 
