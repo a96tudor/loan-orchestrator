@@ -2,10 +2,12 @@ from typing import Dict, List, Union
 
 from pyutils.helpers.errors import Error
 
+from orchestrator.clients.openai.client import AvailableOpenAIModels
 from orchestrator.resources.pipeline.amount_policy import AmountPoliciesRule
 from orchestrator.resources.pipeline.dti_rule import DTIRule
 from orchestrator.resources.pipeline.loan_cap import LoanCapForCountry, LoanCaps
 from orchestrator.resources.pipeline.risk_scoring import RiskScoringRule
+from orchestrator.resources.pipeline.sentiment_analysis import SentimentAnalysisStep
 from orchestrator.resources.pipeline.step import PipelineStep
 from orchestrator.resources.types import Country, EvaluationResult, PipelineStepType
 from orchestrator.utils.logging import logger
@@ -92,10 +94,29 @@ def _parse_dti_rule(step_dict: dict) -> DTIRule:
     )
 
 
+def parse_sentiment_analysis_step(step_dict: dict) -> SentimentAnalysisStep:
+    fail_scenario = parse_pipeline_step(step_dict.get("failScenario"))
+    pass_scenario = parse_pipeline_step(step_dict.get("passScenario"))
+
+    model = (
+        AvailableOpenAIModels(step_dict.get("model"))
+        if step_dict.get("model")
+        else AvailableOpenAIModels.GPT_4O_MINI
+    )
+
+    return SentimentAnalysisStep(
+        pass_scenario=pass_scenario,
+        fail_scenario=fail_scenario,
+        flow_node_id=step_dict.get("nodeId"),
+        model=model,
+    )
+
+
 PARSING_FUNCTIONS = {
     PipelineStepType.DTI_RULE.value: _parse_dti_rule,
     PipelineStepType.RISK_SCORING_RULE.value: _parse_risk_scoring_rule,
     PipelineStepType.AMOUNT_POLICY_RULE.value: _parse_amount_policies_rule,
+    PipelineStepType.SENTIMENT_ANALYSIS_RULE: parse_sentiment_analysis_step,
 }
 
 
