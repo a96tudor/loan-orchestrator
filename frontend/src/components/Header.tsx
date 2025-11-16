@@ -26,7 +26,7 @@ const Header: React.FC = () => {
   const location = useLocation();
   const isDashboard = location.pathname === '/';
   const isAllPipelines = location.pathname === '/all-pipelines';
-  const isAllRuns = location.pathname === '/all-runs';
+  const isAllRuns = location.pathname === '/evaluations' || location.pathname.startsWith('/evaluations/');
 
   return (
     <header className="bg-gray-800 text-white shadow-lg">
@@ -56,7 +56,7 @@ const Header: React.FC = () => {
           <nav className="flex items-center space-x-2">
             <NavLink label="Dashboard" to="/" isActive={isDashboard} />
             <NavLink label="All Pipelines" to="/all-pipelines" isActive={isAllPipelines} />
-            <NavLink label="All Runs" to="/all-runs" isActive={isAllRuns} />
+            <NavLink label="All Runs" to="/evaluations" isActive={isAllRuns} />
           </nav>
         </div>
       </div>

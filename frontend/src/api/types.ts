@@ -18,7 +18,7 @@ export type ApplicationStatus = 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED
 
 export type PipelineStatus = 'ACTIVE' | 'DISABLED' | 'OLD_VERSION';
 
-export type EvaluationStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type EvaluationStatus = 'PENDING' | 'EVALUATING' | 'EVALUATED' | 'EVALUATING_ERROR';
 
 export type EvaluationResult = 'APPROVED' | 'REJECTED' | 'NEEDS_REVIEW';
 
@@ -89,6 +89,7 @@ export interface Pipeline {
   reactFlowNodes: Record<string, ReactFlowNode>;
   createdAt: string;
   updatedAt: string;
+  version: string;
 }
 
 export interface GetPipelinesParams {
@@ -111,14 +112,14 @@ export interface EvaluationDetails {
 }
 
 export interface Evaluation {
-  id: string;
-  applicationId: string;
-  pipelineId: string;
+  evaluationId: string;
+  application: Application;
+  pipeline: Pipeline;
   status: EvaluationStatus;
   result: EvaluationResult | null;
-  details: EvaluationDetails;
-  createdAt: string;
-  updatedAt: string;
+  details: EvaluationDetails | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface GetEvaluationsParams {

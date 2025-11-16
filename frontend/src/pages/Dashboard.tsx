@@ -1,33 +1,64 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import ActionCard from '../components/ActionCard';
 import StatusBadge from '../components/StatusBadge';
-import { getEvaluationStats } from '../api/evaluations';
-import type { EvaluationStats } from '../api/types';
+import { getEvaluationStats, getEvaluations } from '../api/evaluations';
+import type { EvaluationStats, Evaluation } from '../api/types';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<EvaluationStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [statsLoading, setStatsLoading] = useState<boolean>(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [evalsLoading, setEvalsLoading] = useState<boolean>(true);
+  const [evalsError, setEvalsError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setStatsLoading(true);
+        setStatsError(null);
         const data = await getEvaluationStats();
         setStats(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load statistics');
+        setStatsError(err instanceof Error ? err.message : 'Failed to load statistics');
         console.error('Error fetching evaluation stats:', err);
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     };
 
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      try {
+        setEvalsLoading(true);
+        setEvalsError(null);
+        const data = await getEvaluations();
+        // Sort by createdAt descending (most recent first) and limit to 5
+        const sorted = [...data]
+          .sort((a, b) => {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return bTime - aTime;
+          })
+          .slice(0, 5);
+        setEvaluations(sorted);
+      } catch (err) {
+        setEvalsError(err instanceof Error ? err.message : 'Failed to load evaluations');
+        console.error('Error fetching evaluations:', err);
+      } finally {
+        setEvalsLoading(false);
+      }
+    };
+    fetchEvaluations();
+  }, []);
+
   // Icon components for statistics
   const DocumentIcon = () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,38 +115,6 @@ const Dashboard: React.FC = () => {
     </svg>
   );
 
-  // Sample data for the reviews table
-  const reviews = [
-    {
-      applicationName: 'Application from Juan Pérez',
-      ref: '4321',
-      pipeline: 'Loan Risk Pipeline v2',
-      status: 'APPROVED' as const,
-      timestamp: 'Nov 12, 2025, 12:30 PM',
-    },
-    {
-      applicationName: 'Application from María García',
-      ref: '4322',
-      pipeline: 'Automatic Approval Pipeline v1',
-      status: 'REJECTED' as const,
-      timestamp: 'Nov 12, 2025, 01:45 PM',
-    },
-    {
-      applicationName: 'Application from Carlos López',
-      ref: '4323',
-      pipeline: 'Loan Risk Pipeline v2',
-      status: 'NEEDS REVIEW' as const,
-      timestamp: 'Nov 12, 2025, 04:15 PM',
-    },
-    {
-      applicationName: 'Application from Ana Martínez',
-      ref: '4324',
-      pipeline: 'High Value Pipeline v3',
-      status: 'APPROVED' as const,
-      timestamp: 'Nov 12, 2025, 06:05 PM',
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -133,10 +132,10 @@ const Dashboard: React.FC = () => {
         {/* Statistics Section */}
         <section className="mb-10">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Statistics</h3>
-          {loading ? (
+          {statsLoading ? (
             <div className="text-center py-8 text-gray-600">Loading statistics...</div>
-          ) : error ? (
-            <div className="text-center py-8 text-red-600">Error: {error}</div>
+          ) : statsError ? (
+            <div className="text-center py-8 text-red-600">Error: {statsError}</div>
           ) : stats ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {(() => {
@@ -156,7 +155,7 @@ const Dashboard: React.FC = () => {
                     ? ((needsReview / totalApplications) * 100).toFixed(1)
                     : '0.0';
                 const avgDuration = stats.averageDuration
-                  ? `${stats.averageDuration.toFixed(1)} seconds`
+                  ? `${(stats.averageDuration * 1000).toFixed(4)} miliseconds`
                   : '0.0 seconds';
 
                 return (
@@ -228,7 +227,10 @@ const Dashboard: React.FC = () => {
                 Recent pipeline executions and their outcomes.
               </p>
             </div>
-            <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button
+              onClick={() => navigate('/evaluations')}
+              className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
               <span>View All Runs</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -254,10 +256,10 @@ const Dashboard: React.FC = () => {
                       Pipeline Used
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Final Status
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Timestamp
+                      Result
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Action
@@ -265,43 +267,87 @@ const Dashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {reviews.map((review, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {review.applicationName}
-                        </div>
-                        <div className="text-sm text-gray-500">Ref: {review.ref}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{review.pipeline}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge status={review.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {review.timestamp}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button className="flex items-center space-x-1 text-blue-600 hover:text-blue-700">
-                          <span>View</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                          </svg>
-                        </button>
+                  {evalsLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
+                        Loading evaluations...
                       </td>
                     </tr>
-                  ))}
+                  ) : evalsError ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-red-600">
+                        Error: {evalsError}
+                      </td>
+                    </tr>
+                  ) : evaluations.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
+                        No evaluations found.
+                      </td>
+                    </tr>
+                  ) : (
+                    evaluations.map((evaluation) => (
+                      <tr key={evaluation.evaluationId} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            Application from {evaluation.application.applicantName}
+                          </div>
+                          <div className="text-sm text-gray-500">Ref: {evaluation.application.key}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{evaluation.pipeline.name} v{evaluation.pipeline.version}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {evaluation.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <StatusBadge
+                            status={
+                              evaluation.result === null
+                                ? 'NOT EVALUATED'
+                                : evaluation.result === 'APPROVED'
+                                  ? 'APPROVED'
+                                  : evaluation.result === 'REJECTED'
+                                    ? 'REJECTED'
+                                    : 'NEEDS REVIEW'
+                            }
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            disabled={evaluation.status !== 'EVALUATED'}
+                            onClick={() => {
+                              if (evaluation.status === 'EVALUATED') {
+                                navigate(`/evaluations/${evaluation.evaluationId}`);
+                              }
+                            }}
+                            className={`flex items-center space-x-1 ${
+                              evaluation.status === 'EVALUATED'
+                                ? 'text-blue-600 hover:text-blue-700 cursor-pointer'
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            <span>View</span>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                              />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
