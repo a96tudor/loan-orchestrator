@@ -155,7 +155,11 @@ def get_evaluation_stats() -> Response:
         for result in EvaluationResult
     }
 
-    all_durations = [e.details["run_duration"] for e in evaluations if e.details]
+    all_durations = [
+        e.details["run_duration"]
+        for e in evaluations
+        if e.details and "run_duration" in e.details
+    ]
 
     average_duration = sum(all_durations) / len(all_durations) if all_durations else 0.0
 

@@ -5,6 +5,7 @@ import typing as t
 
 from flask import Flask
 from flask import typing as ft
+from flask_cors import CORS
 
 from orchestrator.app.config import Config
 from orchestrator.app.routes import register_routes
@@ -50,3 +51,9 @@ def create_app(config_path: str | None = None) -> Flask:
 
 
 APP = create_app()
+_CORS = CORS(
+    APP,
+    resources={
+        r"*": {"/evaluations/*": "*"}
+    }
+)

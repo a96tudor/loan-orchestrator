@@ -36,11 +36,11 @@ class Application:
     def to_dict(self) -> dict:
         return {
             "key": self.key,
-            "applicant_name": self.applicant_name,
+            "applicantName": self.applicant_name,
             "amount": self.amount,
-            "monthly_income": self.monthly_income,
-            "declared_debts": self.declared_debts,
+            "monthlyIncome": self.monthly_income,
+            "declaredDebts": self.declared_debts,
             "country": self.country.value,
-            "loan_purpose": self.loan_purpose,
+            "loanPurpose": self.loan_purpose,
             "status": self.status.value,
         }
