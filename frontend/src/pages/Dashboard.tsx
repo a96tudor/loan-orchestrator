@@ -3,18 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import ActionCard from '../components/ActionCard';
-import StatusBadge from '../components/StatusBadge';
-import { getEvaluationStats, getEvaluations } from '../api/evaluations';
-import type { EvaluationStats, Evaluation } from '../api/types';
+import EvaluationsTable from '../components/EvaluationsTable';
+import { getEvaluationStats } from '../api/evaluations';
+import type { EvaluationStats } from '../api/types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<EvaluationStats | null>(null);
   const [statsLoading, setStatsLoading] = useState<boolean>(true);
   const [statsError, setStatsError] = useState<string | null>(null);
-  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
-  const [evalsLoading, setEvalsLoading] = useState<boolean>(true);
-  const [evalsError, setEvalsError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -32,31 +29,6 @@ const Dashboard: React.FC = () => {
     };
 
     fetchStats();
-  }, []);
-
-  useEffect(() => {
-    const fetchEvaluations = async () => {
-      try {
-        setEvalsLoading(true);
-        setEvalsError(null);
-        const data = await getEvaluations();
-        // Sort by createdAt descending (most recent first) and limit to 5
-        const sorted = [...data]
-          .sort((a, b) => {
-            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return bTime - aTime;
-          })
-          .slice(0, 5);
-        setEvaluations(sorted);
-      } catch (err) {
-        setEvalsError(err instanceof Error ? err.message : 'Failed to load evaluations');
-        console.error('Error fetching evaluations:', err);
-      } finally {
-        setEvalsLoading(false);
-      }
-    };
-    fetchEvaluations();
   }, []);
 
   // Icon components for statistics
@@ -244,114 +216,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Reviews Table */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Application Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pipeline Used
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Result
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {evalsLoading ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
-                        Loading evaluations...
-                      </td>
-                    </tr>
-                  ) : evalsError ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-red-600">
-                        Error: {evalsError}
-                      </td>
-                    </tr>
-                  ) : evaluations.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
-                        No evaluations found.
-                      </td>
-                    </tr>
-                  ) : (
-                    evaluations.map((evaluation) => (
-                      <tr key={evaluation.evaluationId} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            Application from {evaluation.application.applicantName}
-                          </div>
-                          <div className="text-sm text-gray-500">Ref: {evaluation.application.key}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{evaluation.pipeline.name} v{evaluation.pipeline.version}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {evaluation.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge
-                            status={
-                              evaluation.result === null
-                                ? 'NOT EVALUATED'
-                                : evaluation.result === 'APPROVED'
-                                  ? 'APPROVED'
-                                  : evaluation.result === 'REJECTED'
-                                    ? 'REJECTED'
-                                    : 'NEEDS REVIEW'
-                            }
-                          />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            disabled={evaluation.status !== 'EVALUATED'}
-                            onClick={() => {
-                              if (evaluation.status === 'EVALUATED') {
-                                navigate(`/evaluations/${evaluation.evaluationId}`);
-                              }
-                            }}
-                            className={`flex items-center space-x-1 ${
-                              evaluation.status === 'EVALUATED'
-                                ? 'text-blue-600 hover:text-blue-700 cursor-pointer'
-                                : 'text-gray-400 cursor-not-allowed'
-                            }`}
-                          >
-                            <span>View</span>
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                              />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <EvaluationsTable limit={5} />
         </section>
       </main>
     </div>

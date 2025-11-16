@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from '../components/Header';
+import EvaluationsTable from '../components/EvaluationsTable';
 
 const Evaluations: React.FC = () => {
   return (
@@ -12,9 +13,7 @@ const Evaluations: React.FC = () => {
           <p className="text-gray-600">View all pipeline evaluations and their outcomes.</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-          <p className="text-gray-600">This page is under construction.</p>
-        </div>
+        <EvaluationsTable limit={null} />
       </main>
     </div>
   );
