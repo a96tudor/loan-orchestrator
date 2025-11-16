@@ -16,6 +16,7 @@ class PipelineStep(abc.ABC):
         type: PipelineStepType,
         pass_scenario: Union[EvaluationResult, "PipelineStep"],
         fail_scenario: Union[EvaluationResult, "PipelineStep"],
+        flow_node_id: str,
     ):
         self.pass_scenario = pass_scenario
         self.fail_scenario = fail_scenario
@@ -25,6 +26,8 @@ class PipelineStep(abc.ABC):
         self.evaluation_result: Optional[EvaluationResult] = None
         self.evaluation_result_value: Optional[float] = None
         self.evaluation_duration: float = 0.0
+
+        self.flow_node_id = flow_node_id
 
     @abc.abstractmethod
     def _evaluate(
@@ -69,6 +72,7 @@ class PipelineStep(abc.ABC):
 
         return {
             "type": self.type.value,
+            "flowNodeId": self.flow_node_id,
             "passScenario": pass_scenario_dict,
             "failScenario": fail_scenario_dict,
         }

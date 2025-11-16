@@ -15,8 +15,14 @@ class DTIRule(PipelineStep):
         max_dti: float,
         pass_scenario: PipelineStep | EvaluationResult,
         fail_scenario: PipelineStep | EvaluationResult,
+        flow_node_id: str,
     ):
-        super().__init__(PipelineStepType.DTI_RULE, pass_scenario, fail_scenario)
+        super().__init__(
+            PipelineStepType.DTI_RULE,
+            pass_scenario,
+            fail_scenario,
+            flow_node_id,
+        )
         self.max_dti = max_dti
 
     def _evaluate(

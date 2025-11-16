@@ -17,9 +17,13 @@ class RiskScoringRule(PipelineStep):
         pass_scenario: PipelineStep | EvaluationResult,
         fail_scenario: PipelineStep | EvaluationResult,
         loan_caps: LoanCaps,
+        flow_node_id: str,
     ):
         super().__init__(
-            PipelineStepType.RISK_SCORING_RULE, pass_scenario, fail_scenario
+            PipelineStepType.RISK_SCORING_RULE,
+            pass_scenario,
+            fail_scenario,
+            flow_node_id,
         )
         self.max_risk_score = max_risk_score
         self.loan_caps = loan_caps

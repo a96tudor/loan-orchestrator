@@ -53,6 +53,7 @@ def _parse_amount_policies_rule(step_dict: dict) -> AmountPoliciesRule:
         loan_caps=loan_caps,
         pass_scenario=pass_scenario,
         fail_scenario=fail_scenario,
+        flow_node_id=step_dict.get("nodeId"),
     )
 
 
@@ -70,6 +71,7 @@ def _parse_risk_scoring_rule(step_dict: dict) -> RiskScoringRule:
         loan_caps=loan_caps,
         pass_scenario=pass_scenario,
         fail_scenario=fail_scenario,
+        flow_node_id=step_dict.get("nodeId"),
     )
 
 
@@ -86,6 +88,7 @@ def _parse_dti_rule(step_dict: dict) -> DTIRule:
         max_dti=max_dti,
         pass_scenario=pass_scenario,
         fail_scenario=fail_scenario,
+        flow_node_id=step_dict.get("nodeId"),
     )
 
 

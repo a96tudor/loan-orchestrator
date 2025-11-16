@@ -16,9 +16,13 @@ class AmountPoliciesRule(PipelineStep):
         loan_caps: LoanCaps,
         pass_scenario: PipelineStep | EvaluationResult,
         fail_scenario: PipelineStep | EvaluationResult,
+        flow_node_id: str,
     ):
         super().__init__(
-            PipelineStepType.AMOUNT_POLICY_RULE, pass_scenario, fail_scenario
+            PipelineStepType.AMOUNT_POLICY_RULE,
+            pass_scenario,
+            fail_scenario,
+            flow_node_id,
         )
         self.loan_caps = loan_caps
 
