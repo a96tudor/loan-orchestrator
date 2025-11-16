@@ -131,3 +131,23 @@ def patch_pipeline_by_id(pipeline_id: str) -> Response:
     pipeline_dto = Pipeline.from_dao(new_pipeline_dao)
 
     return jsonify(pipeline_dto.to_dict())
+
+
+@run_route_safely(message="Error validating pipeline steps", unwrap_body=True)
+@log_execution_time(description="Validating pipeline steps structure")
+def validate_pipeline_steps() -> Response:
+    steps_to_validate = request.get_json(force=True)
+
+    if not validate_pipeline_dict(steps_to_validate):
+        logger.error("Invalid pipeline steps structure")
+        return Response(
+            response='{"error": "Invalid pipeline steps structure"}',
+            status=400,
+            mimetype="application/json",
+        )
+
+    return Response(
+        response='{"message": "Pipeline steps structure is valid"}',
+        status=200,
+        mimetype="application/json",
+    )

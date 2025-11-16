@@ -17,6 +17,7 @@ from .pipeline import (
     get_pipeline_by_id,
     get_pipelines,
     patch_pipeline_by_id,
+    validate_pipeline_steps,
 )
 
 
@@ -43,6 +44,11 @@ def register_routes(app: Flask) -> None:
         "/pipeline/<string:pipeline_id>",
         view_func=patch_pipeline_by_id,
         methods=["PATCH"],
+    )
+    app.add_url_rule(
+        "/pipeline/validate",
+        view_func=validate_pipeline_steps,
+        methods=["POST"],
     )
 
     # Evaluation routes
