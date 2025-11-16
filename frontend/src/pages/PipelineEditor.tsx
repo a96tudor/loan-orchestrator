@@ -168,8 +168,9 @@ const PipelineEditor: React.FC = () => {
         if (pipeline.reactFlowNodes && pipeline.reactFlowNodes.nodes && pipeline.reactFlowNodes.edges) {
           const reactFlowData = pipeline.reactFlowNodes;
           
+          // Preserve exact node IDs from reactFlowNodes - do not modify them
           const loadedNodes: Node[] = Object.values(reactFlowData.nodes).map((node) => ({
-            id: node.id,
+            id: node.id, // Preserve original ID from reactFlowNodes
             type: node.type,
             position: node.position || { x: 0, y: 0 },
             data: node.data,
@@ -177,10 +178,11 @@ const PipelineEditor: React.FC = () => {
             selectable: true,
           }));
 
+          // Preserve exact edge IDs from reactFlowNodes - do not modify them
           const loadedEdges: Edge[] = reactFlowData.edges.map((edge) => ({
-            id: edge.id,
-            source: edge.source,
-            target: edge.target,
+            id: edge.id, // Preserve original ID from reactFlowNodes
+            source: edge.source, // Preserve original source node ID
+            target: edge.target, // Preserve original target node ID
             sourceHandle: edge.sourceHandle,
             targetHandle: edge.targetHandle,
             label: edge.label,
@@ -766,10 +768,11 @@ const PipelineEditor: React.FC = () => {
         edges: [],
       };
 
-      // Add nodes (preserving IDs)
+      // Add nodes (preserving original IDs from reactFlowNodes - do not change them)
       nodes.forEach((node) => {
+        // Use the exact node ID as it exists - preserve it from the original reactFlowNodes
         reactFlowNodesData.nodes[node.id] = {
-          id: node.id,
+          id: node.id, // Preserve original node ID
           type: node.type,
           position: node.position,
           data: node.data,
