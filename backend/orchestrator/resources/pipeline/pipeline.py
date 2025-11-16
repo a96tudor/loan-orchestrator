@@ -68,6 +68,7 @@ class Pipeline:
                 "description": self.description,
             },
             "steps": self.root_step.to_dict(),
+            "reactFlowNodes": self.react_flow_nodes,
             "eval": self.root_step.get_evaluation_result(),
             "run_result": self.run_result.value,
             "run_duration": self.run_time,

@@ -34,7 +34,7 @@ class RiskScoringRule(PipelineStep):
         loan_cap = self.loan_caps.get_cap_for_country(application.country)
         risk_score = (application.dti * 100) + (application.amount / loan_cap * 20)
 
-        if risk_score >= self.max_risk_score:
+        if risk_score <= self.max_risk_score:
             return PipelineStepEvaluationResult.PASS, risk_score
         else:
             return PipelineStepEvaluationResult.FAIL, risk_score
