@@ -6,6 +6,7 @@ import ReactFlow, {
   Background,
   ReactFlowProvider,
   NodeTypes,
+  MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import Header from '../components/Header';
@@ -81,7 +82,14 @@ const ReviewApplication: React.FC = () => {
     if (!selectedPipelineData?.reactFlowNodes) {
       return [];
     }
-    return Object.values(selectedPipelineData.reactFlowNodes).map((node) => ({
+    
+    // Check if it's the new format (with nodes and edges) or old format (just nodes)
+    const isNewFormat = 'nodes' in selectedPipelineData.reactFlowNodes && 'edges' in selectedPipelineData.reactFlowNodes;
+    const nodesToUse = isNewFormat 
+      ? (selectedPipelineData.reactFlowNodes as { nodes: Record<string, any>; edges: any[] }).nodes
+      : selectedPipelineData.reactFlowNodes as Record<string, any>;
+    
+    return Object.values(nodesToUse).map((node) => ({
       id: node.id,
       type: node.type,
       position: node.position,
@@ -91,8 +99,40 @@ const ReviewApplication: React.FC = () => {
     })) as Node[];
   }, [selectedPipelineData]);
 
-  // Empty edges array for read-only view
-  const flowEdges: Edge[] = [];
+  // Convert reactFlowNodes to React Flow edges
+  const flowEdges = useMemo(() => {
+    if (!selectedPipelineData?.reactFlowNodes) {
+      return [];
+    }
+    
+    // Check if it's the new format (with nodes and edges) or old format (just nodes)
+    const isNewFormat = 'nodes' in selectedPipelineData.reactFlowNodes && 'edges' in selectedPipelineData.reactFlowNodes;
+    
+    if (!isNewFormat) {
+      return [];
+    }
+    
+    const edgesData = (selectedPipelineData.reactFlowNodes as { nodes: Record<string, any>; edges: any[] }).edges;
+    
+    return edgesData.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle,
+      targetHandle: edge.targetHandle,
+      label: edge.label,
+      style: edge.sourceHandle === 'pass' 
+        ? { stroke: '#22c55e', strokeWidth: 2 }
+        : edge.sourceHandle === 'fail'
+        ? { stroke: '#ef4444', strokeWidth: 2 }
+        : { strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: edge.sourceHandle === 'pass' ? '#22c55e' : edge.sourceHandle === 'fail' ? '#ef4444' : '#000',
+      },
+      selectable: false,
+    })) as Edge[];
+  }, [selectedPipelineData]);
 
   const handleRunPipeline = async () => {
     // Validate that both application and pipeline are selected
@@ -391,8 +431,32 @@ const ReviewApplication: React.FC = () => {
               {/* Pipeline Visualization Section */}
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Pipeline Visualization</h3>
-                {selectedPipelineData?.reactFlowNodes &&
-                Object.keys(selectedPipelineData.reactFlowNodes).length > 0 ? (
+                {!selectedPipeline ? (
+                  <div className="flex flex-col items-center justify-center h-[400px]">
+                    <div className="text-center">
+                      <div className="mb-4 flex justify-center">
+                        <svg
+                          className="w-12 h-12 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Select a pipeline to view its visualization.
+                      </p>
+                    </div>
+                  </div>
+                ) : selectedPipelineData?.reactFlowNodes &&
+                (('nodes' in selectedPipelineData.reactFlowNodes && Object.keys(selectedPipelineData.reactFlowNodes.nodes).length > 0) ||
+                 (!('nodes' in selectedPipelineData.reactFlowNodes) && Object.keys(selectedPipelineData.reactFlowNodes).length > 0)) ? (
                   <div className="h-[400px] w-full">
                     <ReactFlowProvider>
                       <ReactFlow
@@ -402,11 +466,15 @@ const ReviewApplication: React.FC = () => {
                         nodesDraggable={false}
                         nodesConnectable={false}
                         elementsSelectable={false}
+                        edgesUpdatable={false}
+                        edgesFocusable={false}
                         panOnDrag={true}
                         zoomOnScroll={true}
                         zoomOnPinch={true}
                         zoomOnDoubleClick={false}
                         preventScrolling={false}
+                        onNodeClick={() => {}}
+                        onEdgeClick={() => {}}
                         fitView
                         fitViewOptions={{ padding: 0.2, maxZoom: 1.5 }}
                         style={{ width: '100%', height: '100%' }}

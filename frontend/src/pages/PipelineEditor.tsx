@@ -23,6 +23,8 @@ import NodeConfigPanel from '../components/NodeConfigPanel';
 import NotificationContainer from '../components/NotificationContainer';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useNotifications } from '../hooks/useNotifications';
+import { validatePipelineSteps, createPipeline, getPipelineById, updatePipeline } from '../api/pipelines';
+import type { ReactFlowNode, ReactFlowEdge } from '../api/types';
 
 // Define node types for React Flow
 const nodeTypes: NodeTypes = {
@@ -55,14 +57,12 @@ const PipelineEditor: React.FC = () => {
     onConfirm: () => void;
   } | null>(null);
 
-  const [pipelineName, setPipelineName] = useState(
-    pipelineId ? 'Pipeline Ejemplo Complejo' : ''
-  );
-  const [description, setDescription] = useState(
-    pipelineId
-      ? 'Approves if DTI is low and Risk Score is high. Instant rejection if DTI is very high.'
-      : ''
-  );
+  const [pipelineName, setPipelineName] = useState('');
+  const [description, setDescription] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Get default config for a rule node based on its name
   const getDefaultConfigForRule = (ruleName: string): any => {
@@ -94,64 +94,155 @@ const PipelineEditor: React.FC = () => {
   };
 
   // Initialize nodes and edges for React Flow
-  const initialNodes: Node[] = pipelineId
-    ? [
-        {
-          id: '1',
-          type: 'rule',
-          position: { x: 400, y: 100 },
-          data: {
-            name: 'Verify Initial DTI',
-            description: 'Verifies Debt/Income ratio.',
-            config: {},
-          },
-        },
-        {
-          id: '2',
-          type: 'rule',
-          position: { x: 400, y: 250 },
-          data: {
-            name: 'Validate Maximum Amount',
-            description: 'Simple rule to validate minimums and maximums of the loan amount.',
-            config: {},
-          },
-        },
-        {
-          id: '3',
-          type: 'rule',
-          position: { x: 400, y: 400 },
-          data: {
-            name: 'Evaluate Risk Score',
-            description: 'Evaluates credit score for approval/rejection.',
-            config: {},
-          },
-        },
-        {
-          id: '4',
-          type: 'terminal',
-          position: { x: 200, y: 150 },
-          data: { name: 'REJECTED', status: 'REJECTED' },
-        },
-        {
-          id: '5',
-          type: 'terminal',
-          position: { x: 200, y: 350 },
-          data: { name: 'NEEDS REVIEW', status: 'NEEDS REVIEW' },
-        },
-        {
-          id: '6',
-          type: 'terminal',
-          position: { x: 600, y: 450 },
-          data: { name: 'APPROVED', status: 'APPROVED' },
-        },
-      ]
-    : [];
-
+  const initialNodes: Node[] = [];
   const initialEdges: Edge[] = [];
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChangeBase] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChangeBase] = useEdgesState(initialEdges);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  
+  // Flag to track if graph has changed (nodes moved, added, removed, or edges added/removed)
+  const [graphChanged, setGraphChanged] = useState<boolean>(false);
+
+  // Wrap onNodesChange to detect changes
+  const onNodesChange = useCallback((changes: any) => {
+    onNodesChangeBase(changes);
+    
+    // Check if any change indicates graph modification
+    const hasGraphChange = changes.some((change: any) => {
+      // Node added
+      if (change.type === 'add') return true;
+      // Node removed
+      if (change.type === 'remove') return true;
+      // Node position changed (moved)
+      if (change.type === 'position' && change.position) return true;
+      // Node dimensions changed (might indicate movement)
+      if (change.type === 'dimensions') return true;
+      return false;
+    });
+    
+    if (hasGraphChange) {
+      setGraphChanged(true);
+    }
+  }, [onNodesChangeBase]);
+
+  // Wrap onEdgesChange to detect changes
+  const onEdgesChange = useCallback((changes: any) => {
+    onEdgesChangeBase(changes);
+    
+    // Check if any change indicates graph modification
+    const hasGraphChange = changes.some((change: any) => {
+      // Edge added
+      if (change.type === 'add') return true;
+      // Edge removed
+      if (change.type === 'remove') return true;
+      return false;
+    });
+    
+    if (hasGraphChange) {
+      setGraphChanged(true);
+    }
+  }, [onEdgesChangeBase]);
+  
+  // Store initial state for comparison when editing
+  const [initialNodesState, setInitialNodesState] = useState<Node[]>([]);
+  const [initialEdgesState, setInitialEdgesState] = useState<Edge[]>([]);
+  const [initialStepsState, setInitialStepsState] = useState<Record<string, unknown> | null>(null);
+
+  // Load pipeline metadata and populate canvas from reactFlowNodes when pipelineId is present
+  React.useEffect(() => {
+    const loadPipeline = async () => {
+      if (!pipelineId) {
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const pipeline = await getPipelineById(pipelineId);
+
+        // Populate name and description
+        setPipelineName(pipeline.name);
+        setDescription(pipeline.description);
+
+        // Populate canvas with nodes and edges from reactFlowNodes
+        if (pipeline.reactFlowNodes && pipeline.reactFlowNodes.nodes && pipeline.reactFlowNodes.edges) {
+          const reactFlowData = pipeline.reactFlowNodes;
+          
+          const loadedNodes: Node[] = Object.values(reactFlowData.nodes).map((node) => ({
+            id: node.id,
+            type: node.type,
+            position: node.position || { x: 0, y: 0 },
+            data: node.data,
+            draggable: true,
+            selectable: true,
+          }));
+
+          const loadedEdges: Edge[] = reactFlowData.edges.map((edge) => ({
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle,
+            label: edge.label,
+            style: edge.sourceHandle === 'pass' 
+              ? { stroke: '#22c55e', strokeWidth: 2 }
+              : edge.sourceHandle === 'fail'
+              ? { stroke: '#ef4444', strokeWidth: 2 }
+              : { strokeWidth: 2 },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: edge.sourceHandle === 'pass' ? '#22c55e' : edge.sourceHandle === 'fail' ? '#ef4444' : '#000',
+            },
+          }));
+
+          setNodes(loadedNodes);
+          setEdges(loadedEdges);
+          
+          // Store initial state for comparison (normalized, without React Flow specific properties)
+          const normalizedInitialNodes = loadedNodes.map(n => ({
+            id: n.id,
+            type: n.type,
+            position: n.position,
+            data: n.data,
+          }));
+          const normalizedInitialEdges = loadedEdges.map(e => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            sourceHandle: e.sourceHandle,
+            targetHandle: e.targetHandle,
+            label: e.label,
+          }));
+          
+          setInitialNodesState(normalizedInitialNodes);
+          setInitialEdgesState(normalizedInitialEdges);
+          setInitialStepsState(pipeline.steps ? JSON.parse(JSON.stringify(pipeline.steps)) : null);
+          
+          // Reset graphChanged flag when loading a pipeline
+          setGraphChanged(false);
+        } else {
+          // No reactFlowNodes available, clear canvas
+          setNodes([]);
+          setEdges([]);
+          setInitialNodesState([]);
+          setInitialEdgesState([]);
+          setInitialStepsState(null);
+          setGraphChanged(false);
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to load pipeline.';
+        showError(errorMessage);
+        console.error('Error loading pipeline:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPipeline();
+  }, [pipelineId, setNodes, setEdges, showError]);
 
   // Ensure all rule nodes have default config values
   React.useEffect(() => {
@@ -273,7 +364,11 @@ const PipelineEditor: React.FC = () => {
               },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => {
+        // Node is being added, mark graph as changed
+        setGraphChanged(true);
+        return nds.concat(newNode);
+      });
     },
     [reactFlowInstance, setNodes]
   );
@@ -289,6 +384,9 @@ const PipelineEditor: React.FC = () => {
       if (!params.source || !params.target || !params.sourceHandle) {
         return;
       }
+      
+      // Edge is being added, mark graph as changed
+      setGraphChanged(true);
 
       // Find source and target nodes
       const sourceNode = nodes.find((n) => n.id === params.source);
@@ -480,38 +578,8 @@ const PipelineEditor: React.FC = () => {
     return convertNode(rootNode.id, new Set());
   }, [nodes, edges]);
 
-  const handleSave = () => {
-    // Serialize nodes and edges for persistence
-    const pipelineData = {
-      name: pipelineName,
-      description,
-      nodes: nodes.map((node) => ({
-        id: node.id,
-        type: node.type,
-        position: node.position,
-        data: node.data,
-      })),
-      edges: edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        sourceHandle: edge.sourceHandle,
-        targetHandle: edge.targetHandle,
-        label: edge.label,
-      })),
-    };
-    console.log('Saving pipeline:', pipelineData);
-
-    // Convert to the specified JSON format and log it
-    const jsonFormat = convertGraphToJSON();
-    console.log('Pipeline JSON Format:', JSON.stringify(jsonFormat, null, 2));
-
-    // In a real app, this would save to the API
-    showSuccess('Pipeline saved successfully!');
-    navigate('/all-pipelines');
-  };
-
-  const handleValidate = () => {
+  // Helper function to run validation and return errors
+  const runValidation = (): { errors: string[]; warnings: string[] } => {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -553,7 +621,7 @@ const PipelineEditor: React.FC = () => {
     if (rootNodes.length === 1) {
       const rootNode = rootNodes[0];
       const visited = new Set<string>();
-      const connectionErrorsChecked = new Set<string>(); // Track which nodes we've already checked for missing connections
+      const connectionErrorsChecked = new Set<string>();
       const pathsToCheck: Array<{ nodeId: string; path: string[] }> = [{ nodeId: rootNode.id, path: [rootNode.id] }];
 
       while (pathsToCheck.length > 0) {
@@ -590,7 +658,6 @@ const PipelineEditor: React.FC = () => {
         if (currentNode.type === 'rule') {
           const connections = adjacencyMap.get(nodeId);
           if (!connections) {
-            // Only add this error once per node
             if (!connectionErrorsChecked.has(nodeId)) {
               errors.push(
                 `Validation Error: Path from root node ends at rule node "${currentNode.data.name}" with no outgoing connections. All paths must end at a terminal node.`
@@ -601,7 +668,7 @@ const PipelineEditor: React.FC = () => {
             continue;
           }
 
-          // Check both pass and fail paths - but only report missing connection errors once per node
+          // Check both pass and fail paths
           if (connections.pass) {
             if (!allNodeIds.has(connections.pass)) {
               if (!connectionErrorsChecked.has(`${nodeId}-pass-invalid`)) {
@@ -612,7 +679,6 @@ const PipelineEditor: React.FC = () => {
               pathsToCheck.push({ nodeId: connections.pass, path: [...path, connections.pass] });
             }
           } else {
-            // Only report missing Pass connection once per node
             if (!connectionErrorsChecked.has(`${nodeId}-pass`)) {
               errors.push(
                 `Validation Error: Rule node "${currentNode.data.name}" has no "Pass" connection. All paths must end at a terminal node.`
@@ -631,7 +697,6 @@ const PipelineEditor: React.FC = () => {
               pathsToCheck.push({ nodeId: connections.fail, path: [...path, connections.fail] });
             }
           } else {
-            // Only report missing Fail connection once per node
             if (!connectionErrorsChecked.has(`${nodeId}-fail`)) {
               errors.push(
                 `Validation Error: Rule node "${currentNode.data.name}" has no "Fail" connection. All paths must end at a terminal node.`
@@ -645,14 +710,178 @@ const PipelineEditor: React.FC = () => {
       }
     }
 
+    return { errors, warnings };
+  };
+
+  const handleSave = async () => {
+    // Validate required fields
+    let hasErrors = false;
+    
+    if (!pipelineName.trim()) {
+      setNameError('Pipeline name is required');
+      hasErrors = true;
+    } else {
+      setNameError(null);
+    }
+
+    if (!description.trim()) {
+      setDescriptionError('Description is required');
+      hasErrors = true;
+    } else {
+      setDescriptionError(null);
+    }
+
+    if (hasErrors) {
+      showError('Please fill in all required fields');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Step 1: Run pipeline validation
+      const { errors } = runValidation();
+      
+      if (errors.length > 0) {
+        showError(`Validation Failed:\n\n${errors.join('\n\n')}`, 10000);
+        setIsSaving(false);
+        return;
+      }
+
+      // Step 2: Convert graph to JSON structure and validate with API
+      const jsonStructure = convertGraphToJSON();
+      
+      if (!jsonStructure) {
+        showError('Validation Failed: Could not convert pipeline to JSON structure.', 10000);
+        setIsSaving(false);
+        return;
+      }
+
+      // Validate with API
+      await validatePipelineSteps(jsonStructure);
+
+      // Step 3: Format reactFlowNodes with both nodes and edges
+      const reactFlowNodesData: { nodes: Record<string, ReactFlowNode>; edges: ReactFlowEdge[] } = {
+        nodes: {},
+        edges: [],
+      };
+
+      // Add nodes (preserving IDs)
+      nodes.forEach((node) => {
+        reactFlowNodesData.nodes[node.id] = {
+          id: node.id,
+          type: node.type,
+          position: node.position,
+          data: node.data,
+        };
+      });
+
+      // Add edges
+      edges.forEach((edge) => {
+        reactFlowNodesData.edges.push({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          sourceHandle: edge.sourceHandle,
+          targetHandle: edge.targetHandle,
+          label: edge.label,
+        });
+      });
+
+      // Step 4: Use the graphChanged flag (set by event handlers)
+      // The flag is automatically set to true when:
+      // - Nodes are moved, added, or removed
+      // - Edges are added or removed
+
+      // Step 5: Send request (POST for new, PATCH for existing)
+      if (pipelineId) {
+        // Editing existing pipeline: PATCH /pipeline/<pipelineId>
+        const patchData: any = {
+          name: pipelineName,
+          description,
+        };
+
+        // Only include steps and reactFlowNodes if graph has changed
+        // This prevents sending large payloads when only name/description changed
+        if (graphChanged) {
+          patchData.steps = jsonStructure;
+          patchData.reactFlowNodes = reactFlowNodesData;
+        }
+
+
+        await updatePipeline(pipelineId, patchData);
+      } else {
+        // Creating new pipeline: POST /pipeline
+        await createPipeline({
+          name: pipelineName,
+          description,
+          steps: jsonStructure,
+          reactFlowNodes: reactFlowNodesData,
+        });
+      }
+
+      // Success: Display message and redirect
+      showSuccess(
+        pipelineId ? 'Pipeline updated successfully!' : 'Pipeline saved successfully!',
+        3000
+      );
+      setTimeout(() => {
+        navigate('/all-pipelines');
+      }, 1000);
+    } catch (error) {
+      // Failure: Display error message and stay on page
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : pipelineId
+          ? 'Failed to update pipeline. Please try again.'
+          : 'Failed to save pipeline. Please try again.';
+      showError(errorMessage);
+      setIsSaving(false);
+    }
+  };
+
+  const handleValidate = () => {
+    const { errors, warnings } = runValidation();
+
     // Display results
     if (errors.length > 0) {
       showError(`Validation Failed:\n\n${errors.join('\n\n')}`, 10000);
-    } else if (warnings.length > 0) {
-      showWarning(`Validation Passed with Warnings:\n\n${warnings.join('\n\n')}`, 8000);
-    } else {
-      showSuccess('Pipeline validation passed! ✓\n\n✓ Exactly one root node found\n✓ All paths from root node end at terminal nodes', 5000);
+      return;
     }
+
+    // If there are warnings, show them but continue with API validation
+    if (warnings.length > 0) {
+      showWarning(`Validation Passed with Warnings:\n\n${warnings.join('\n\n')}`, 8000);
+    }
+
+    // All local validations passed, now validate with the API
+    const validateWithAPI = async () => {
+      try {
+        const jsonStructure = convertGraphToJSON();
+        
+        if (!jsonStructure) {
+          showError('Validation Failed: Could not convert pipeline to JSON structure.', 10000);
+          return;
+        }
+
+        const response = await validatePipelineSteps(jsonStructure);
+        
+        // API validation passed
+        const successMessage = `Pipeline validation passed! ✓\n\n✓ Exactly one root node found\n✓ All paths from root node end at terminal nodes\n✓ API validation: ${response.message}`;
+        
+        showSuccess(successMessage, 5000);
+      } catch (error) {
+        // API validation failed
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Pipeline validation failed on the server.';
+        showError(`API Validation Failed:\n\n${errorMessage}`, 10000);
+      }
+    };
+
+    validateWithAPI();
   };
 
   const handleExport = () => {
@@ -706,6 +935,15 @@ const PipelineEditor: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-700">Loading pipeline...</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col h-[calc(100vh-80px)]">
         {/* Top Control Panel */}
         <div className="bg-white border-b border-gray-200 p-6">
@@ -714,42 +952,101 @@ const PipelineEditor: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pipeline Name
+                  Pipeline Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={pipelineName}
-                  onChange={(e) => setPipelineName(e.target.value)}
+                  onChange={(e) => {
+                    setPipelineName(e.target.value);
+                    if (nameError && e.target.value.trim()) {
+                      setNameError(null);
+                    }
+                  }}
                   placeholder="Enter pipeline name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    nameError
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                 />
+                {nameError && (
+                  <p className="mt-1 text-sm text-red-600">{nameError}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  Description <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (descriptionError && e.target.value.trim()) {
+                      setDescriptionError(null);
+                    }
+                  }}
                   placeholder="Enter pipeline description"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    descriptionError
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                 />
+                {descriptionError && (
+                  <p className="mt-1 text-sm text-red-600">{descriptionError}</p>
+                )}
               </div>
               <div className="flex items-end">
                 <button
                   onClick={handleSave}
-                  className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 shadow-md"
+                  disabled={!pipelineName.trim() || !description.trim() || isSaving}
+                  className={`w-full px-6 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 shadow-md ${
+                    !pipelineName.trim() || !description.trim() || isSaving
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                    />
-                  </svg>
-                  <span>Save Pipeline</span>
+                  {isSaving ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                        />
+                      </svg>
+                      <span>Save Pipeline</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

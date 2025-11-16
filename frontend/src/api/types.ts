@@ -66,11 +66,16 @@ export interface ReactFlowEdge {
   label?: string;
 }
 
+export interface ReactFlowData {
+  nodes: Record<string, ReactFlowNode>;
+  edges: ReactFlowEdge[];
+}
+
 export interface CreatePipelineRequest {
   name: string;
   description: string;
   steps: Record<string, unknown>;
-  reactFlowNodes: Record<string, ReactFlowNode>;
+  reactFlowNodes: ReactFlowData;
 }
 
 export interface UpdatePipelineRequest {
@@ -78,6 +83,7 @@ export interface UpdatePipelineRequest {
   description?: string;
   status?: PipelineStatus;
   steps?: Record<string, unknown>;
+  reactFlowNodes?: ReactFlowData;
 }
 
 export interface Pipeline {
@@ -86,7 +92,7 @@ export interface Pipeline {
   description: string;
   status: PipelineStatus;
   steps: Record<string, unknown>;
-  reactFlowNodes: Record<string, ReactFlowNode>;
+  reactFlowNodes: ReactFlowData;
   createdAt: string;
   updatedAt: string;
   version: string;
