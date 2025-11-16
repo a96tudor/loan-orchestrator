@@ -54,6 +54,9 @@ APP = create_app()
 _CORS = CORS(
     APP,
     resources={
-        r"*": {"/evaluations/*": "*"}
-    }
+        r"*": {
+            "/evaluations/*": "*",
+            "/application*": "*",
+        }
+    },
 )

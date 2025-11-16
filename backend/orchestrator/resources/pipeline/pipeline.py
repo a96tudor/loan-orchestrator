@@ -1,3 +1,4 @@
+from datetime import datetime
 from time import time
 from typing import Optional
 
@@ -18,6 +19,8 @@ class Pipeline:
         status: PipelineStatus,
         root_step: PipelineStep,
         react_flow_nodes: dict,
+        created_at: datetime,
+        updated_at: datetime,
     ):
         self.id_ = id_
         self.name = name
@@ -26,6 +29,8 @@ class Pipeline:
         self.status = status
         self.root_step = root_step
         self.react_flow_nodes = react_flow_nodes
+        self.created_at = created_at
+        self.updated_at = updated_at
 
         self.run_result: Optional[EvaluationResult] = None
         self.run_time: float = 0.0
@@ -47,6 +52,8 @@ class Pipeline:
             "status": self.status.value,
             "steps": self.root_step.to_dict(),
             "reactFlowNodes": self.react_flow_nodes,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
         }
 
     @property
@@ -70,11 +77,13 @@ class Pipeline:
     def from_dao(cls, dao: PipelineDAO) -> "Pipeline":
         root_step = parse_pipeline_step(dao.current_version.steps)
         return cls(
-            id_=dao.id,
+            id_=str(dao.id),
             name=dao.name,
             description=dao.description,
             version=str(dao.current_version.version_number),
             status=PipelineStatus(dao.status),
             root_step=root_step,
             react_flow_nodes=dao.current_version.react_flow_nodes or {},
+            created_at=dao.created_at,
+            updated_at=dao.updated_at,
         )
