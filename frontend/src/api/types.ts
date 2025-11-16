@@ -14,9 +14,9 @@ export interface ApiError {
 
 export type Country = 'Spain' | 'France' | 'Germany' | string;
 
-export type ApplicationStatus = 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+export type ApplicationStatus = 'SUBMITTED' | 'IN_REVIEW' | 'REVIEWED' | 'REVIEWING_ERROR';
 
-export type PipelineStatus = 'ACTIVE' | 'DISABLED' | 'OLD_VERSION';
+export type PipelineStatus = 'ACTIVE' | 'DISABLED';
 
 export type EvaluationStatus = 'PENDING' | 'EVALUATING' | 'EVALUATED' | 'EVALUATING_ERROR';
 
