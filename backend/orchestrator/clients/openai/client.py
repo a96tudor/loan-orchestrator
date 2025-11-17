@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from typing import Optional
 
@@ -7,11 +8,12 @@ from orchestrator.utils.logging import logger
 
 _SYSTEM_PROMPT = """
 You classify short free-text messages in the context of a loan application.
+The text represents the applicant's stated purpose for the loan.
 
 Output rules:
 - You MUST respond with exactly one of these two tokens: RISKY or NOT-RISKY.
 - RISKY = clearly negative, aggressive, hostile, unstable, threatening, or
-    otherwise concerning sentiment.
+    otherwise concerning sentiment, serious risk of not being able to repay the loan.
 - NOT-RISKY = neutral or positive sentiment, or benign small complaints.
 
 No explanations, no punctuation, no extra words. Only: RISKY or NOT-RISKY.
@@ -31,6 +33,7 @@ class AvailableOpenAIModels(Enum):
 
 class OpenAIClient:
     def __init__(self):
+        print(os.environ.get("OPENAI_API_KEY"))
         self.client = OpenAI()
 
     def classify_risk(
@@ -44,13 +47,14 @@ class OpenAIClient:
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {"role": "user", "content": text},
             ],
-            max_output_tokens=3,
+            max_output_tokens=16,
             temperature=0,
         )
-        raw = response.choices[0].message.content.strip().upper()
+        raw = response.output[0].content[0].text.strip().upper()
 
-        try:
-            return OpenAIClassificationResult(raw)
-        except Exception:
-            logger.warning(f"OpenAI classification returned unexpected result: {raw}")
+        if "NOT-RISKY" in raw:
+            return OpenAIClassificationResult.NOT_RISKY
+        elif "RISKY" in raw:
+            return OpenAIClassificationResult.RISKY
+        else:
             return OpenAIClassificationResult.CLASSIFICATION_FAILED

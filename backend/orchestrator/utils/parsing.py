@@ -116,7 +116,7 @@ PARSING_FUNCTIONS = {
     PipelineStepType.DTI_RULE.value: _parse_dti_rule,
     PipelineStepType.RISK_SCORING_RULE.value: _parse_risk_scoring_rule,
     PipelineStepType.AMOUNT_POLICY_RULE.value: _parse_amount_policies_rule,
-    PipelineStepType.SENTIMENT_ANALYSIS_RULE: parse_sentiment_analysis_step,
+    PipelineStepType.SENTIMENT_ANALYSIS_RULE.value: parse_sentiment_analysis_step,
 }
 
 
