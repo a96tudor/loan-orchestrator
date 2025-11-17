@@ -1,5 +1,5 @@
 """WSGI entry point for gunicorn."""
 
-from backend_app.app import create_app
+from orchestrator.app.app import APP
 
-application = create_app()
+application = APP

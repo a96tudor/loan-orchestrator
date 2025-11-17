@@ -149,10 +149,6 @@ const PipelineEditor: React.FC = () => {
   }, [onEdgesChangeBase]);
   
   // Store initial state for comparison when editing
-  const [initialNodesState, setInitialNodesState] = useState<Node[]>([]);
-  const [initialEdgesState, setInitialEdgesState] = useState<Edge[]>([]);
-  const [initialStepsState, setInitialStepsState] = useState<Record<string, unknown> | null>(null);
-
   // Load pipeline metadata and populate canvas from reactFlowNodes when pipelineId is present
   React.useEffect(() => {
     const loadPipeline = async () => {
@@ -204,35 +200,12 @@ const PipelineEditor: React.FC = () => {
           setNodes(loadedNodes);
           setEdges(loadedEdges);
           
-          // Store initial state for comparison (normalized, without React Flow specific properties)
-          const normalizedInitialNodes = loadedNodes.map(n => ({
-            id: n.id,
-            type: n.type,
-            position: n.position,
-            data: n.data,
-          }));
-          const normalizedInitialEdges = loadedEdges.map(e => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-            sourceHandle: e.sourceHandle,
-            targetHandle: e.targetHandle,
-            label: e.label,
-          }));
-          
-          setInitialNodesState(normalizedInitialNodes);
-          setInitialEdgesState(normalizedInitialEdges);
-          setInitialStepsState(pipeline.steps ? JSON.parse(JSON.stringify(pipeline.steps)) : null);
-          
           // Reset graphChanged flag when loading a pipeline
           setGraphChanged(false);
         } else {
           // No reactFlowNodes available, clear canvas
           setNodes([]);
           setEdges([]);
-          setInitialNodesState([]);
-          setInitialEdgesState([]);
-          setInitialStepsState(null);
           setGraphChanged(false);
         }
       } catch (error) {
@@ -387,7 +360,8 @@ const PipelineEditor: React.FC = () => {
   // Handle connection creation with validation
   const onConnect = useCallback(
     (params: Connection) => {
-      if (!params.source || !params.target || !params.sourceHandle) {
+      const { source, target, sourceHandle } = params;
+      if (!source || !target || !sourceHandle) {
         return;
       }
       
@@ -395,8 +369,8 @@ const PipelineEditor: React.FC = () => {
       setGraphChanged(true);
 
       // Find source and target nodes
-      const sourceNode = nodes.find((n) => n.id === params.source);
-      const targetNode = nodes.find((n) => n.id === params.target);
+      const sourceNode = nodes.find((n) => n.id === source);
+      const targetNode = nodes.find((n) => n.id === target);
 
       if (!sourceNode || !targetNode) {
         return;
@@ -406,12 +380,15 @@ const PipelineEditor: React.FC = () => {
       // - Pass and Fail outputs can connect to rule or terminal nodes
 
       // Create edge with label and color based on source handle
-      const edgeColor = params.sourceHandle === 'pass' ? '#22c55e' : '#ef4444';
-      const edgeLabel = params.sourceHandle === 'pass' ? 'Pass' : 'Fail';
+      const edgeColor = sourceHandle === 'pass' ? '#22c55e' : '#ef4444';
+      const edgeLabel = sourceHandle === 'pass' ? 'Pass' : 'Fail';
 
       const newEdge: Edge = {
-        ...params,
-        id: `edge-${params.source}-${params.sourceHandle}-${params.target}`,
+        id: `edge-${source}-${sourceHandle}-${target}`,
+        source,
+        target,
+        sourceHandle,
+        targetHandle: params.targetHandle ?? undefined,
         label: edgeLabel,
         style: { stroke: edgeColor, strokeWidth: 2 },
         markerEnd: {
@@ -426,7 +403,7 @@ const PipelineEditor: React.FC = () => {
   );
 
   // Handle node click to open config panel
-  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     if (node.type === 'rule') {
       setSelectedNodeId(node.id);
     } else {
@@ -595,9 +572,7 @@ const PipelineEditor: React.FC = () => {
 
     // Get all rule nodes
     const ruleNodes = nodes.filter((n) => n.type === 'rule');
-    const terminalNodes = nodes.filter((n) => n.type === 'terminal');
     const allNodeIds = new Set(nodes.map((n) => n.id));
-    const terminalNodeIds = new Set(terminalNodes.map((n) => n.id));
 
     // Build adjacency map: nodeId -> { pass: targetId | null, fail: targetId | null }
     const adjacencyMap = new Map<string, { pass: string | null; fail: string | null }>();
@@ -781,7 +756,7 @@ const PipelineEditor: React.FC = () => {
         // Use the exact node ID as it exists - preserve it from the original reactFlowNodes
         reactFlowNodesData.nodes[node.id] = {
           id: node.id, // Preserve original node ID
-          type: node.type,
+          type: node.type ?? 'rule',
           position: node.position,
           data: node.data,
         };
@@ -793,9 +768,9 @@ const PipelineEditor: React.FC = () => {
           id: edge.id,
           source: edge.source,
           target: edge.target,
-          sourceHandle: edge.sourceHandle,
-          targetHandle: edge.targetHandle,
-          label: edge.label,
+          sourceHandle: edge.sourceHandle ?? undefined,
+          targetHandle: edge.targetHandle ?? undefined,
+          label: typeof edge.label === 'string' ? edge.label : undefined,
         });
       });
 
@@ -941,6 +916,8 @@ const PipelineEditor: React.FC = () => {
   };
 
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : null;
+  const selectedNodeType: 'rule' | 'terminal' | null =
+    selectedNode?.type === 'rule' || selectedNode?.type === 'terminal' ? selectedNode.type : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1299,7 +1276,7 @@ const PipelineEditor: React.FC = () => {
           {/* Right Sidebar - Configuration Panel */}
           <NodeConfigPanel
             nodeId={selectedNodeId}
-            nodeType={selectedNode?.type || null}
+            nodeType={selectedNodeType}
             nodeData={selectedNode?.data || null}
             onUpdate={handleNodeUpdate}
             onClose={() => setSelectedNodeId(null)}

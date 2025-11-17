@@ -22,13 +22,7 @@ interface BaseNodeConfigPanelProps {
   children: React.ReactNode;
 }
 
-const BaseNodeConfigPanel: React.FC<BaseNodeConfigPanelProps> = ({
-  nodeId,
-  nodeData,
-  onUpdate,
-  onClose,
-  children,
-}) => {
+const BaseNodeConfigPanel: React.FC<BaseNodeConfigPanelProps> = ({ onClose, children }) => {
   return (
     <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full">
       {/* Header */}

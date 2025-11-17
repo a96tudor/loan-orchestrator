@@ -1,50 +1,39 @@
 FROM python:3.12-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies required for building and running psycopg / gunicorn
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    libpq-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
-RUN pip install --no-cache-dir poetry==1.7.1
+ENV POETRY_HOME=/opt/poetry \
+    PATH="/opt/poetry/bin:${PATH}" \
+    POETRY_VENV_IN_PROJECT=true \
+    POETRY_NO_INTERACTION=1
+RUN pip install --no-cache-dir poetry
 
-# Configure Poetry to not create virtual environment (we're in a container)
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VENV_IN_PROJECT=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+# Ensure OPENAI_API_KEY can be provided either at build time (ARG) or runtime (ENV)
+ARG OPENAI_API_KEY=""
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 
-# Copy Poetry configuration files
-COPY pyproject.toml poetry.lock* ./
+# 1. Copy the entire backend directory
+COPY . /app
 
-# Install dependencies
-RUN poetry install --no-dev && rm -rf $POETRY_CACHE_DIR
+# 2. Install the package using Poetry (includes dependencies)
+RUN poetry install --no-root
 
-# Copy source code
-COPY src/ ./src/
+# 3-5 happen at runtime via the entrypoint script:
+#    3. Run alembic upgrade head
+#    4. Generate config.yaml
+#    5. Launch the API on port 5001
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
-# Copy config generation script
-COPY generate_config.py ./
-
-# Copy Alembic configuration
-COPY alembic ./alembic
-COPY alembic.ini ./alembic.ini
-
-# Copy entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
-
-# Expose port 5001
 EXPOSE 5001
 
-# Use entrypoint script
-CMD ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 

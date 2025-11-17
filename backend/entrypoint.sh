@@ -14,5 +14,4 @@ echo "[entrypoint] Running database migrations..."
 poetry run alembic upgrade head
 
 echo "[entrypoint] Starting gunicorn on port ${PORT}..."
-exec poetry run gunicorn --bind 0.0.0.0:$PORT --workers 4 backend_app.wsgi:application
-
+exec poetry run gunicorn --bind 0.0.0.0:$PORT --workers 4 orchestrator.app.wsgi:application
