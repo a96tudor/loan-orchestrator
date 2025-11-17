@@ -2,6 +2,7 @@ import React from 'react';
 import DTIRuleConfigPanel from './ruleConfigs/DTIRuleConfigPanel';
 import AmountPolicyConfigPanel from './ruleConfigs/AmountPolicyConfigPanel';
 import RiskScoreConfigPanel from './ruleConfigs/RiskScoreConfigPanel';
+import SentimentVerificationConfigPanel from './ruleConfigs/SentimentVerificationConfigPanel';
 import DefaultRuleConfigPanel from './ruleConfigs/DefaultRuleConfigPanel';
 import { NodeData } from './BaseNodeConfigPanel';
 
@@ -66,6 +67,15 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
     case 'Risk Score':
       return (
         <RiskScoreConfigPanel
+          nodeId={nodeId}
+          nodeData={nodeData}
+          onUpdate={onUpdate}
+          onClose={onClose}
+        />
+      );
+    case 'Sentiment Verification':
+      return (
+        <SentimentVerificationConfigPanel
           nodeId={nodeId}
           nodeData={nodeData}
           onUpdate={onUpdate}

@@ -126,8 +126,25 @@ const Dashboard: React.FC = () => {
                   totalApplications > 0
                     ? ((needsReview / totalApplications) * 100).toFixed(1)
                     : '0.0';
+                // Format average duration with appropriate unit
+                const formatDuration = (durationInSeconds: number): string => {
+                  if (durationInSeconds < 1e-6) {
+                    // Less than 1e-6 seconds: display as nanoseconds
+                    return `${(durationInSeconds * 1e9).toFixed(2)} ns`;
+                  } else if (durationInSeconds < 1e-3) {
+                    // Less than 1e-3 seconds: display as milliseconds
+                    return `${(durationInSeconds * 1000).toFixed(4)} ms`;
+                  } else if (durationInSeconds >= 1) {
+                    // Greater than or equal to 1 second: display as seconds
+                    return `${durationInSeconds.toFixed(4)} seconds`;
+                  } else {
+                    // Between 1e-3 and 1: display as milliseconds (fallback)
+                    return `${(durationInSeconds * 1000).toFixed(4)} ms`;
+                  }
+                };
+                
                 const avgDuration = stats.averageDuration
-                  ? `${(stats.averageDuration * 1000).toFixed(4)} miliseconds`
+                  ? formatDuration(stats.averageDuration)
                   : '0.0 seconds';
 
                 return (
@@ -186,6 +203,7 @@ const Dashboard: React.FC = () => {
             <ActionCard
               title="View All Pipelines"
               description="Manage and edit all defined loan workflows."
+              to="/all-pipelines"
             />
           </div>
         </section>

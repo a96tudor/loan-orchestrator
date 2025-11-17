@@ -89,6 +89,10 @@ const PipelineEditor: React.FC = () => {
         otherAmount: 20000,
         approveThreshold: 45,
       };
+    } else if (ruleName === 'Sentiment Verification') {
+      return {
+        model: 'gpt-4o-mini',
+      };
     }
     return {};
   };
@@ -257,6 +261,7 @@ const PipelineEditor: React.FC = () => {
       if (ruleName === 'DTI Rule' && config.threshold === undefined) return true;
       if (ruleName === 'Amount Policy' && (!config.countryCaps || config.otherAmount === undefined)) return true;
       if (ruleName === 'Risk Score' && (!config.countryCaps || config.otherAmount === undefined || config.approveThreshold === undefined)) return true;
+      if (ruleName === 'Sentiment Verification' && config.model === undefined) return true;
       
       return false;
     });
@@ -311,8 +316,7 @@ const PipelineEditor: React.FC = () => {
     {
       id: 'sentiment',
       name: 'Sentiment Verification',
-      description: 'Social sentiment analysis (fictitious example).',
-      comingSoon: true,
+      description: 'AI-Powered Sentiment Analysis',
     },
   ];
 
@@ -516,6 +520,8 @@ const PipelineEditor: React.FC = () => {
           ruleType = 'AMOUNT_POLICY_RULE';
         } else if (nodeName === 'Risk Score') {
           ruleType = 'RISK_SCORING_RULE';
+        } else if (nodeName === 'Sentiment Verification') {
+          ruleType = 'SENTIMENT_ANALYSIS_RULE';
         } else {
           ruleType = 'UNKNOWN_RULE'; // Fallback for unknown rule types
         }
@@ -569,6 +575,8 @@ const PipelineEditor: React.FC = () => {
           });
           result.loanCaps = loanCaps;
           result.maxRiskScore = config.approveThreshold ?? 45;
+        } else if (ruleType === 'SENTIMENT_ANALYSIS_RULE') {
+          result.model = config.model ?? 'gpt-4o-mini';
         }
 
         return result;

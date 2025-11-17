@@ -388,7 +388,7 @@ const ReviewApplication: React.FC = () => {
                           }).format(selectedAppData.monthlyIncome)}
                         </p>
                       </div>
-                      <div className="pb-3">
+                      <div className="border-b border-gray-200 pb-3">
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                           Declared Debts
                         </label>
@@ -398,6 +398,12 @@ const ReviewApplication: React.FC = () => {
                             currency: 'USD',
                           }).format(selectedAppData.declaredDebts)}
                         </p>
+                      </div>
+                      <div className="pb-3">
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                          Loan Purpose
+                        </label>
+                        <p className="mt-1 text-base text-gray-900">{selectedAppData.loanPurpose}</p>
                       </div>
                     </div>
                   </div>
