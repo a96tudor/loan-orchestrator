@@ -1,8 +1,8 @@
 # Database Configuration
 database:
-  user: postgres
+  username: postgres
   password: postgres
-  dbname: loan_orchestrator
+  database: loan_orchestrator
   host: localhost
   port: 5432
 
@@ -11,5 +11,5 @@ flask:
   secret_key: "change-this-to-a-random-secret-key-in-production"
   debug: true
   host: "0.0.0.0"
-  port: 5000
+  port: 5001
 

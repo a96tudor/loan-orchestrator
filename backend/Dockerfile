@@ -28,8 +28,13 @@ COPY src/ ./src/
 # Copy config generation script
 COPY generate_config.py ./
 
-# Create entrypoint script that generates config.yaml and runs gunicorn
-RUN echo '#!/bin/sh\npoetry run python generate_config.py\nexec poetry run gunicorn --bind 0.0.0.0:5000 --workers 4 backend_app.wsgi:application' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Copy Alembic configuration
+COPY alembic ./alembic
+COPY alembic.ini ./alembic.ini
+
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
@@ -37,8 +42,8 @@ RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 # Switch to non-root user
 USER appuser
 
-# Expose port
-EXPOSE 5000
+# Expose port 5001
+EXPOSE 5001
 
 # Use entrypoint script
 CMD ["/app/entrypoint.sh"]

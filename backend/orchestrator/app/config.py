@@ -40,9 +40,14 @@ class Config:
 
         # Database configuration
         db_config = config_data.get("database", {})
-        self.POSTGRES_USER = db_config.get("user", "postgres")
+        # Support both "user"/"username" and "dbname"/"database" for backward compatibility
+        self.POSTGRES_USER = db_config.get("username") or db_config.get(
+            "user", "postgres"
+        )
         self.POSTGRES_PASSWORD = db_config.get("password", "postgres")
-        self.POSTGRES_DB = db_config.get("dbname", "loan_orchestrator")
+        self.POSTGRES_DB = db_config.get("database") or db_config.get(
+            "dbname", "loan_orchestrator"
+        )
         self.POSTGRES_HOST = db_config.get("host", "localhost")
         self.POSTGRES_PORT = db_config.get("port", 5432)
 

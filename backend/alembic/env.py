@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -9,10 +10,27 @@ from orchestrator.clients.db.schema import _BASE as Base
 # access to the values within the .ini file in use.
 config = context.config
 
+
+def _resolve_database_url() -> str:
+    """Resolve the database URL from environment variables."""
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        return database_url
+
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "postgres")
+    dbname = os.getenv("POSTGRES_DB", "loan_orchestrator")
+    host = os.getenv("POSTGRES_HOST", "localhost")
+    port = os.getenv("POSTGRES_PORT", "5432")
+
+    return f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+config.set_main_option("sqlalchemy.url", _resolve_database_url())
 
 target_metadata = Base.metadata
 
